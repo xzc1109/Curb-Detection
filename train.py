@@ -32,7 +32,7 @@ def eval(dataloader, faster_rcnn, test_num=10000):
     for ii, (imgs, sizes, gt_bboxes_, gt_labels_, gt_difficults_) in tqdm(enumerate(dataloader)):
         sizes = [sizes[0][0].item(), sizes[1][0].item()]
         pred_bboxes_, pred_labels_, pred_scores_ = faster_rcnn.predict(imgs, [sizes])
-        print(pred_bboxes_)
+        #print(pred_bboxes_)
         gt_bboxes += list(gt_bboxes_.numpy())
         gt_labels += list(gt_labels_.numpy())
         gt_difficults += list(gt_difficults_.numpy())
