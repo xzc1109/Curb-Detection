@@ -3,3 +3,5 @@ __pycache__
 checkpoints
 .ipynb_checkpoints/ 
 *.pyc
+.gitattributes
+.gitignore
