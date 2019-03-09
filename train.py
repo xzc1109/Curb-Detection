@@ -62,7 +62,7 @@ def predictor(dataloader, faster_rcnn, test_num=10000):
         pred_scores += pred_scores_
         if ii == test_num: break
     jlist = list()
-    json_path = os.path.join(json_dir_path,'predic_reslut.json')
+    json_path = os.path.join(json_dir_path,'predic_result.json')
     json_file = open(json_path,'w')
     for i in range(len(pred_bboxes)):
         maxindex = pred_scores[i].argmax()
