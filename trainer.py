@@ -95,7 +95,9 @@ class FasterRCNNTrainer(nn.Module):
         img_size = (H, W)
 
         features = self.faster_rcnn.extractor(imgs)
-
+        print("feature.shape\n")
+        print(features.shape)
+#################################################################################
         rpn_locs, rpn_scores, rois, roi_indices, anchor = \
             self.faster_rcnn.rpn(features, img_size, scale)
 
