@@ -20,12 +20,16 @@ def decom_vgg16():
 
     features = list(model.features)[:30]
     classifier = model.classifier
-
+    curb_classifier = model.classifier#curb_classifier do not share weights with faster-rcnn classifier
     classifier = list(classifier)
+    curb_classifier = list(curb_classifier)
     del classifier[6]
     if not opt.use_drop:
         del classifier[5]
+        del curb_classifier[5]
         del classifier[2]
+        del curb_classifier[2]
+    curb_classifier = nn.Sequential(*curb_classifier)
     classifier = nn.Sequential(*classifier)
 
     # freeze top4 conv
@@ -33,7 +37,7 @@ def decom_vgg16():
         for p in layer.parameters():
             p.requires_grad = False
 
-    return nn.Sequential(*features), classifier
+    return nn.Sequential(*features), classifier, curb_classifier
 
 
 class FasterRCNNVGG16(FasterRCNN):
@@ -56,12 +60,16 @@ class FasterRCNNVGG16(FasterRCNN):
 
     def __init__(self,
                  n_fg_class=1,
+                 n_curb_class=3,
                  ratios=[0.5, 1, 2],
                  anchor_scales=[8, 16, 32]
                  ):
                  
-        extractor, classifier = decom_vgg16()
-
+        extractor, classifier, curb_classifier = decom_vgg16()
+        curbclassifier = CurbClassifier(
+            n_curb_classes=n_curb_class,
+            classifier=curb_classifier
+        )
         rpn = RegionProposalNetwork(
             512, 512,
             ratios=ratios,
@@ -78,10 +86,30 @@ class FasterRCNNVGG16(FasterRCNN):
 
         super(FasterRCNNVGG16, self).__init__(
             extractor,
+            curbclassifier,
             rpn,
             head,
         )
 
+class CurbClassifier(nn.Module):
+    '''
+    Classifier for the classification of the curbs implementation.
+    The curbs can be divided into three types that are "continuously visible", 
+    "obstacle" and "intersection".
+    written by xzc
+
+    Args:
+        n_curb_class (int): The number of curb classes, default is 3.
+        calssifier (nn.Module):Two layer Linear ported from vgg16
+    '''
+    def __init__(self, n_curb_classes, classifier):
+        super(CurbClassifier,self).__init__()
+        self.classifier = classifier
+        self.score = nn.Linear(4096, n_curb_classes)
+    def forward(self, x):
+        x = self.classifier(x)
+        x = self.score(x)
+        return x
 
 class VGG16RoIHead(nn.Module):
     """Faster R-CNN Head for VGG-16 based implementation.

@@ -14,7 +14,8 @@ from utils.config import opt
 from torchnet.meter import ConfusionMeter, AverageValueMeter
 
 LossTuple = namedtuple('LossTuple',
-                       ['rpn_loc_loss',
+                       ['curb_class_loss',
+                        'rpn_loc_loss',
                         'rpn_cls_loss',
                         'roi_loc_loss',
                         'roi_cls_loss',
@@ -26,7 +27,7 @@ class FasterRCNNTrainer(nn.Module):
     """wrapper for conveniently training. return losses
 
     The losses include:
-
+    * :obj:`curb_class_loss`: The classification loss for curbs.
     * :obj:`rpn_loc_loss`: The localization loss for \
         Region Proposal Network (RPN).
     * :obj:`rpn_cls_loss`: The classification loss for RPN.
@@ -95,9 +96,9 @@ class FasterRCNNTrainer(nn.Module):
         img_size = (H, W)
 
         features = self.faster_rcnn.extractor(imgs)
-        print("feature.shape\n")
-        print(features.shape)
-#################################################################################
+        curb_class_scores = self.faster_rcnn.curbclassifier(features)
+        #-------------------Curb classes loss------------------#
+        curb_class_loss = nn.CrossEntropyLoss(curb_class_scores,curb_class_label.cuda())##There comes the problems how to get curb_class_label??????
         rpn_locs, rpn_scores, rois, roi_indices, anchor = \
             self.faster_rcnn.rpn(features, img_size, scale)
 
@@ -163,7 +164,7 @@ class FasterRCNNTrainer(nn.Module):
 
         losses = [rpn_loc_loss, rpn_cls_loss, roi_loc_loss, roi_cls_loss]
         losses = losses + [sum(losses)]
-
+        losses = [curb_class_loss] + losses
         return LossTuple(*losses)
 
     def train_step(self, imgs, bboxes, labels, scale):

@@ -68,12 +68,13 @@ class FasterRCNN(nn.Module):
 
     """
 
-    def __init__(self, extractor, rpn, head,
+    def __init__(self, extractor, curbclassifier, rpn, head,
                 loc_normalize_mean = (0., 0., 0., 0.),
                 loc_normalize_std = (0.1, 0.1, 0.2, 0.2)
     ):
         super(FasterRCNN, self).__init__()
         self.extractor = extractor
+        self.curbclassifier = curbclassifier
         self.rpn = rpn
         self.head = head
 
@@ -127,11 +128,12 @@ class FasterRCNN(nn.Module):
         img_size = x.shape[2:]
 
         h = self.extractor(x)
+        curb_class_scores = self.curbclassifier(h)
         rpn_locs, rpn_scores, rois, roi_indices, anchor = \
             self.rpn(h, img_size, scale)
         roi_cls_locs, roi_scores = self.head(
             h, rois, roi_indices)
-        return roi_cls_locs, roi_scores, rois, roi_indices
+        return curb_class_scores, roi_cls_locs, roi_scores, rois, roi_indices
 
     def use_preset(self, preset):
         """Use the given preset during prediction.
