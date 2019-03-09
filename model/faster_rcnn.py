@@ -12,7 +12,7 @@ from data.dataset import preprocess
 from torch.nn import functional as F
 from utils.config import opt
 
-
+curb_classes = ['continuously visible','obstacle','intersection']
 def nograd(f):
     def new_f(*args,**kwargs):
         with t.no_grad():
@@ -186,7 +186,7 @@ class FasterRCNN(nn.Module):
         return bbox, label, score
 
     @nograd
-    def predict(self, imgs,sizes=None,visualize=False):
+    def predict(self, imgs,sizes=None,visualize=False):#take care of the curb class label
         """Detect objects from images.
 
         This method predicts objects for each image.
@@ -232,7 +232,7 @@ class FasterRCNN(nn.Module):
         for img, size in zip(prepared_imgs, sizes):
             img = at.totensor(img[None]).float()
             scale = img.shape[3] / size[1]
-            roi_cls_loc, roi_scores, rois, _ = self(img, scale=scale)
+            curb_class_scores, roi_cls_loc, roi_scores, rois, _ = self(img, scale=scale)
             # We are assuming that batch size is 1.
             roi_score = roi_scores.data
             roi_cls_loc = roi_cls_loc.data
@@ -265,10 +265,10 @@ class FasterRCNN(nn.Module):
             bboxes.append(bbox)
             labels.append(label)
             scores.append(score)
-
+            predict_curb_label = curb_classes[np.argmax(curb_class_scores)]
         self.use_preset('evaluate')
         self.train()
-        return bboxes, labels, scores
+        return predict_curb_label, bboxes, labels, scores
 
     def get_optimizer(self):
         """

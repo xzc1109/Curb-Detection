@@ -14,8 +14,7 @@ from utils.config import opt
 from torchnet.meter import ConfusionMeter, AverageValueMeter
 
 LossTuple = namedtuple('LossTuple',
-                       ['curb_class_loss',
-                        'rpn_loc_loss',
+                       ['rpn_loc_loss',
                         'rpn_cls_loss',
                         'roi_loc_loss',
                         'roi_cls_loss',
@@ -63,7 +62,7 @@ class FasterRCNNTrainer(nn.Module):
         self.roi_cm = ConfusionMeter(2)
         self.meters = {k: AverageValueMeter() for k in LossTuple._fields}  # average loss
 
-    def forward(self, imgs, bboxes, labels, scale):
+    def forward(self, imgs, bboxes, labels, scale, curb_class_label):
         """Forward Faster R-CNN and calculate losses.
 
         Here are notations used.
@@ -164,16 +163,16 @@ class FasterRCNNTrainer(nn.Module):
 
         losses = [rpn_loc_loss, rpn_cls_loss, roi_loc_loss, roi_cls_loss]
         losses = losses + [sum(losses)]
-        losses = [curb_class_loss] + losses
-        return LossTuple(*losses)
+        return LossTuple(*losses), curb_class_loss
 
-    def train_step(self, imgs, bboxes, labels, scale):
+    def train_step(self, imgs, bboxes, labels, scale, curb_class_label):
         self.optimizer.zero_grad()
-        losses = self.forward(imgs, bboxes, labels, scale)
+        losses,curb_loss = self.forward(imgs, bboxes, labels, scale, curb_class_label)
         losses.total_loss.backward()
+        curb_loss.backward()
         self.optimizer.step()
         self.update_meters(losses)
-        return losses
+        return losses, curb_loss
 
     def save(self, save_optimizer=False, save_path=None, **kwargs):
         """serialize models include optimizer and other info

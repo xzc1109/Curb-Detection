@@ -119,15 +119,18 @@ def train(**kwargs):
         trainer.reset_meters()
         for ii, (img, bbox_, label_, scale) in tqdm(enumerate(dataloader)):
             scale = at.scalar(scale)
-            img, bbox, label = img.cuda().float(), bbox_.cuda(), label_.cuda()
-            trainer.train_step(img, bbox, label, scale)
-
+            img, bbox, label, curb_class_label = img.cuda().float(), bbox_.cuda(), label_.cuda(), curb_class_label.cuda()
+            __,curb_loss = trainer.train_step(img, bbox, label, scale, curb_class_label)#get curb classification loss
+            curb_loss_dict = {'curb classification loss':curb_loss}
             if (ii + 1) % opt.plot_every == 0:
                 if os.path.exists(opt.debug_file):
                     ipdb.set_trace()
 
                 # plot loss
                 trainer.vis.plot_many(trainer.get_meter_data())
+
+                # plot curb classification loss
+                trainer.vis.plot_many(curb_loss_dict)
 
                 # plot groud truth bboxes
                 ori_img_ = inverse_normalize(at.tonumpy(img[0]))
