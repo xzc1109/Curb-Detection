@@ -96,6 +96,7 @@ class CurbROIDataset:
             os.path.join(self.data_dir, 'Annotations', id_ + '.xml'))
         bbox = list()
         label = list()
+        curb_class_label = list()
         difficult = list()
         for obj in anno.findall('object'):
             # when in not using difficult split, and the object is
@@ -110,9 +111,12 @@ class CurbROIDataset:
                 int(bndbox_anno.find(tag).text) - 1
                 for tag in ('ymin', 'xmin', 'ymax', 'xmax')])
             name = obj.find('name').text.lower().strip()
-            label.append(CURB_BBOX_LABEL_NAMES.index(name))
+            label.append(DEFAULT_BBOX_LABEL_NAMES.index(name))
+            curb_type = obj.find('type').text.lower().strip()
+            curb_class_label.append(CURB_BBOX_LABEL_NAMES.index(curb_type))
         bbox = np.stack(bbox).astype(np.float32)
         label = np.stack(label).astype(np.int32)
+        curb_class_label = np.stack(curb_class_label).astype(np.int32)
         # When `use_difficult==False`, all elements in `difficult` are False.
         difficult = np.array(difficult, dtype=np.bool).astype(np.uint8)  # PyTorch don't support np.bool
 
@@ -122,10 +126,16 @@ class CurbROIDataset:
 
         # if self.return_difficult:
         #     return img, bbox, label, difficult
-        return img, bbox, label, difficult
+        return img, bbox, label, difficult, curb_class_label
 
     __getitem__ = get_example
 
+num_curb_classes = 3
+DEFAULT_BBOX_LABEL_NAMES = (
+    'curb')
 
 CURB_BBOX_LABEL_NAMES = (
-    'curb')
+    'continuously_visible',
+    'obstacle',
+    'intersection'
+)

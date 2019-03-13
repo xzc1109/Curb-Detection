@@ -12,7 +12,7 @@ from data.dataset import preprocess
 from torch.nn import functional as F
 from utils.config import opt
 
-curb_classes = ['continuously visible','obstacle','intersection']
+curb_classes = ['continuously_visible','obstacle','intersection']
 def nograd(f):
     def new_f(*args,**kwargs):
         with t.no_grad():
@@ -229,6 +229,7 @@ class FasterRCNN(nn.Module):
         bboxes = list()
         labels = list()
         scores = list()
+        predict_curb_label = list()
         for img, size in zip(prepared_imgs, sizes):
             img = at.totensor(img[None]).float()
             scale = img.shape[3] / size[1]
@@ -265,7 +266,7 @@ class FasterRCNN(nn.Module):
             bboxes.append(bbox)
             labels.append(label)
             scores.append(score)
-            predict_curb_label = curb_classes[np.argmax(curb_class_scores)]
+            predict_curb_label.append(curb_classes[np.argmax(curb_class_scores)])
         self.use_preset('evaluate')
         self.train()
         return predict_curb_label, bboxes, labels, scores

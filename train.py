@@ -27,25 +27,32 @@ matplotlib.use('agg')
 json_dir_path = '/home/xuzhongcong/mycode/CURB2019/'
 
 def eval(dataloader, faster_rcnn, test_num=10000):
-    pred_bboxes, pred_labels, pred_scores = list(), list(), list()
-    gt_bboxes, gt_labels, gt_difficults = list(), list(), list()
-    for ii, (imgs, sizes, gt_bboxes_, gt_labels_, gt_difficults_) in tqdm(enumerate(dataloader)):
+    count = 0
+    pred_curb_classes, pred_bboxes, pred_labels, pred_scores =list(), list(), list(), list()
+    gt_bboxes, gt_labels, gt_difficults, gt_curb_class_labels = list(), list(), list(), list()
+    for ii, (imgs, sizes, gt_bboxes_, gt_labels_, gt_difficults_, gt_curb_class_labels_) in tqdm(enumerate(dataloader)):
         sizes = [sizes[0][0].item(), sizes[1][0].item()]
-        pred_bboxes_, pred_labels_, pred_scores_ = faster_rcnn.predict(imgs, [sizes])
+        pred_curb_classes_, pred_bboxes_, pred_labels_, pred_scores_ = faster_rcnn.predict(imgs, [sizes])
         #print(pred_bboxes_)
         gt_bboxes += list(gt_bboxes_.numpy())
         gt_labels += list(gt_labels_.numpy())
         gt_difficults += list(gt_difficults_.numpy())
+        gt_curb_class_labels += list(gt_curb_class_labels_.numpy())
+        pred_curb_classes += pred_curb_classes_
         pred_bboxes += pred_bboxes_
         pred_labels += pred_labels_
         pred_scores += pred_scores_
         if ii == test_num: break
-
+    
     result = eval_detection_voc(
         pred_bboxes, pred_labels, pred_scores,
         gt_bboxes, gt_labels, gt_difficults,
         use_07_metric=True)
-    return result
+    for i,item in pred_bboxes:
+        if item == pred_curb_classes[i]:
+            count += 1
+    curb_class_accuracy = count/test_num
+    return result,curb_class_accuracy
 
 def predictor(dataloader, faster_rcnn, test_num=10000):
     pred_bboxes, pred_labels, pred_scores = list(), list(), list()
@@ -117,20 +124,17 @@ def train(**kwargs):
     lr_ = opt.lr
     for epoch in range(opt.epoch):
         trainer.reset_meters()
-        for ii, (img, bbox_, label_, scale) in tqdm(enumerate(dataloader)):
+        for ii, (img, bbox_, label_, scale, curb_class_label_) in tqdm(enumerate(dataloader)):
             scale = at.scalar(scale)
-            img, bbox, label, curb_class_label = img.cuda().float(), bbox_.cuda(), label_.cuda(), curb_class_label.cuda()
-            __,curb_loss = trainer.train_step(img, bbox, label, scale, curb_class_label)#get curb classification loss
-            curb_loss_dict = {'curb classification loss':curb_loss}
+            img, bbox, label, curb_class_label = img.cuda().float(), bbox_.cuda(), label_.cuda(), curb_class_label_.cuda()
+            trainer.train_step(img, bbox, label, scale,curb_class_label)
+
             if (ii + 1) % opt.plot_every == 0:
                 if os.path.exists(opt.debug_file):
                     ipdb.set_trace()
 
                 # plot loss
                 trainer.vis.plot_many(trainer.get_meter_data())
-
-                # plot curb classification loss
-                trainer.vis.plot_many(curb_loss_dict)
 
                 # plot groud truth bboxes
                 ori_img_ = inverse_normalize(at.tonumpy(img[0]))
@@ -140,10 +144,11 @@ def train(**kwargs):
                 trainer.vis.img('gt_img', gt_img)
 
                 # plot predicti bboxes
-                _bboxes, _labels, _scores = trainer.faster_rcnn.predict([ori_img_], visualize=True)
+                _curb_class_labels, _bboxes, _labels, _scores = trainer.faster_rcnn.predict([ori_img_], visualize=True)
                 pred_img = visdom_bbox(ori_img_,
+                                       at.tonumpy(_curb_class_labels[0].reshape(-1)),
                                        at.tonumpy(_bboxes[0]),
-                                       at.tonumpy(_labels[0]).reshape(-1),
+                                       #at.tonumpy(_labels[0]).reshape(-1),
                                        at.tonumpy(_scores[0]))
                 trainer.vis.img('pred_img', pred_img)
 
