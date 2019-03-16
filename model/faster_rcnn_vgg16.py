@@ -7,7 +7,8 @@ from model.faster_rcnn import FasterRCNN
 from model.roi_module import RoIPooling2D
 from utils import array_tool as at
 from utils.config import opt
-from voc_dataset import num_curb_classes
+
+num_curb_classes = 3
 
 def decom_vgg16():
     # the 30th layer of features is relu of conv5_3
