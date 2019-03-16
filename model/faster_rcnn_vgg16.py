@@ -8,7 +8,6 @@ from model.roi_module import RoIPooling2D
 from utils import array_tool as at
 from utils.config import opt
 
-num_curb_classes = 3
 
 def decom_vgg16():
     # the 30th layer of features is relu of conv5_3
@@ -21,11 +20,18 @@ def decom_vgg16():
 
     features = list(model.features)[:30]
     classifier = model.classifier
+    curb_classifier = model.classifier#curb_classifier does not share weights with faster-rcnn classifier
     classifier = list(classifier)
+    curb_classifier = list(curb_classifier)
+    del curb_classifier[0]
     del classifier[6]
     if not opt.use_drop:
         del classifier[5]
+        del curb_classifier[5]
         del classifier[2]
+        del curb_classifier[2]
+    curb_classifier = [nn.Linear(512 * 8 * 15, 4096)] + curb_classifier
+    curb_classifier = nn.Sequential(*curb_classifier)
     classifier = nn.Sequential(*classifier)
 
     # freeze top4 conv
@@ -33,8 +39,7 @@ def decom_vgg16():
         for p in layer.parameters():
             p.requires_grad = False
 
-    return nn.Sequential(*features), classifier
-
+    return nn.Sequential(*features), classifier, curb_classifier
 
 
 class FasterRCNNVGG16(FasterRCNN):
@@ -62,16 +67,7 @@ class FasterRCNNVGG16(FasterRCNN):
                  anchor_scales=[8, 16, 32]
                  ):
                  
-        extractor, classifier = decom_vgg16()
-        curb_classifier = nn.Sequential(
-            nn.Linear(512 * 35 * 62, 4096),
-            nn.ReLU(True),
-            nn.Dropout(),
-            nn.Linear(4096, 4096),
-            nn.ReLU(True),
-            nn.Dropout(),
-            nn.Linear(4096, num_curb_classes),
-        )
+        extractor, classifier, curb_classifier = decom_vgg16()
         curbclassifier = CurbClassifier(
             n_curb_classes=n_curb_class,
             classifier=curb_classifier
@@ -110,11 +106,18 @@ class CurbClassifier(nn.Module):
     '''
     def __init__(self, n_curb_classes, classifier):
         super(CurbClassifier,self).__init__()
+        in_channels = 512
+        out_channels = 512
+        self.conv = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=5, padding=1, stride=2),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=1)
+        )
         self.classifier = classifier
         self.score = nn.Linear(4096, n_curb_classes)
     def forward(self, x):
         x = x.view(x.size(0), -1)
-        print(x.shape)
         x = self.classifier(x)
         x = self.score(x)
         return x
@@ -193,6 +196,3 @@ def normal_init(m, mean, stddev, truncated=False):
     else:
         m.weight.data.normal_(mean, stddev)
         m.bias.data.zero_()
-
-
-
