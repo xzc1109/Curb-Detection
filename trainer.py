@@ -17,6 +17,7 @@ LossTuple = namedtuple('LossTuple',
                        ['rpn_loc_loss',
                         'rpn_cls_loss',
                         'roi_loc_loss',
+                        'curb_class_loss',
                         'total_loss'
                         ])
 
@@ -162,18 +163,17 @@ class FasterRCNNTrainer(nn.Module):
 
         #self.roi_cm.add(at.totensor(roi_score, False), gt_roi_label.data.long())
 
-        losses = [rpn_loc_loss, rpn_cls_loss, roi_loc_loss]
+        losses = [rpn_loc_loss, rpn_cls_loss, roi_loc_loss,curb_class_loss]
         losses = losses + [sum(losses)]
-        return LossTuple(*losses), curb_class_loss
+        return LossTuple(*losses)
 
     def train_step(self, imgs, bboxes, labels, scale, curb_class_label):
         self.optimizer.zero_grad()
-        losses,curb_loss = self.forward(imgs, bboxes, labels, scale, curb_class_label)
+        losses = self.forward(imgs, bboxes, labels, scale, curb_class_label)
         losses.total_loss.backward()
-        curb_loss.backward()
         self.optimizer.step()
         self.update_meters(losses)
-        return losses, curb_loss
+        return losses
 
     def save(self, save_optimizer=False, save_path=None, **kwargs):
         """serialize models include optimizer and other info
