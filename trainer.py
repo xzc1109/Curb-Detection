@@ -96,7 +96,8 @@ class FasterRCNNTrainer(nn.Module):
         features = self.faster_rcnn.extractor(imgs)
         curb_class_scores = self.faster_rcnn.curbclassifier(features)
         #-------------------Curb classes loss------------------#
-        curb_class_loss = nn.CrossEntropyLoss(curb_class_scores,curb_class_label.cuda())##There comes the problems how to get curb_class_label??????
+        curb_class_criterion = nn.CrossEntropyLoss()
+        curb_class_loss = curb_class_criterion(curb_class_scores,curb_class_label.cuda())##There comes the problems how to get curb_class_label??????
         rpn_locs, rpn_scores, rois, roi_indices, anchor = \
             self.faster_rcnn.rpn(features, img_size, scale)
 
@@ -118,7 +119,7 @@ class FasterRCNNTrainer(nn.Module):
             self.loc_normalize_std)
         # NOTE it's all zero because now it only support for batch=1 now
         sample_roi_index = t.zeros(len(sample_roi))
-        roi_cls_loc = self.faster_rcnn.head(
+        roi_cls_loc,__ = self.faster_rcnn.head(
             features,
             sample_roi,
             sample_roi_index)
