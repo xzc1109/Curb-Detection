@@ -44,3 +44,20 @@ Checking for scripts.
 It's Alive!
 /usr/bin/python: No module named visdom
 /usr/bin/python: No module named visdom
+INFO:root:Application Started
+INFO:tornado.access:200 POST /env/fasterrcnn-caffe (127.0.0.1) 1.18ms
+INFO:tornado.access:200 POST /events (127.0.0.1) 1.02ms
+INFO:tornado.access:200 POST /env/fasterrcnn-caffe (127.0.0.1) 1.02ms
+INFO:tornado.access:200 POST /events (127.0.0.1) 1.06ms
+INFO:tornado.access:200 POST /env/fasterrcnn-caffe (127.0.0.1) 0.95ms
+INFO:tornado.access:200 POST /events (127.0.0.1) 1.11ms
+INFO:tornado.access:200 POST /env/fasterrcnn-caffe (127.0.0.1) 0.93ms
+INFO:tornado.access:200 POST /events (127.0.0.1) 1.13ms
+INFO:tornado.access:200 POST /env/fasterrcnn-caffe (127.0.0.1) 0.94ms
+INFO:tornado.access:200 POST /events (127.0.0.1) 0.84ms
+INFO:tornado.access:200 POST /env/fasterrcnn-caffe (127.0.0.1) 0.75ms
+INFO:tornado.access:200 POST /events (127.0.0.1) 0.75ms
+INFO:tornado.access:200 POST /env/fasterrcnn-caffe (127.0.0.1) 0.97ms
+INFO:tornado.access:200 POST /events (127.0.0.1) 1.11ms
+INFO:tornado.access:200 POST /env/fasterrcnn-caffe (127.0.0.1) 0.96ms
+INFO:tornado.access:200 POST /events (127.0.0.1) 1.08ms
