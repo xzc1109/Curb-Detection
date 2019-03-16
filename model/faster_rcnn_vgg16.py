@@ -20,7 +20,7 @@ def decom_vgg16():
 
     features = list(model.features)[:30]
     classifier = model.classifier
-    curb_classifier = model.classifier#curb_classifier do not share weights with faster-rcnn classifier
+    curb_classifier = model.classifier#curb_classifier does not share weights with faster-rcnn classifier
     classifier = list(classifier)
     curb_classifier = list(curb_classifier)
     del classifier[6]
@@ -107,6 +107,7 @@ class CurbClassifier(nn.Module):
         self.classifier = classifier
         self.score = nn.Linear(4096, n_curb_classes)
     def forward(self, x):
+        x = x.view(x.size(0), -1)
         x = self.classifier(x)
         x = self.score(x)
         return x
