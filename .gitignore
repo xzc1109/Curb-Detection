@@ -6,3 +6,4 @@ checkpoints
 .gitattributes
 .gitignore
 .vscode/
+nohup.out
