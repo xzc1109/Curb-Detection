@@ -97,7 +97,8 @@ class FasterRCNNTrainer(nn.Module):
         curb_class_scores = self.faster_rcnn.curbclassifier(features)
         #-------------------Curb classes loss------------------#
         curb_class_label = at.totensor(curb_class_label).long()
-        curb_class_loss = F.cross_entropy(curb_class_scores,curb_class_label.cuda())##There comes the problems how to get curb_class_label??????
+        curb_class_label = curb_class_label.squeeze(0)
+        curb_class_loss = F.cross_entropy(curb_class_scores,curb_class_label.cuda(),ignore_index=-1)##There comes the problems how to get curb_class_label??????
         rpn_locs, rpn_scores, rois, roi_indices, anchor = \
             self.faster_rcnn.rpn(features, img_size, scale)
 
