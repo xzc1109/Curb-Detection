@@ -118,6 +118,7 @@ class CurbClassifier(nn.Module):
         self.score = nn.Linear(4096, n_curb_classes)
     def forward(self, x):
         x = self.conv(x)
+        print(x.shape)
         x = x.view(x.size(0), -1)
         x = self.classifier(x)
         x = self.score(x)
