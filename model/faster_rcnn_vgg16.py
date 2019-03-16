@@ -112,12 +112,13 @@ class CurbClassifier(nn.Module):
             nn.Conv2d(in_channels, out_channels, kernel_size=5, padding=1, stride=2),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2, padding=1)
+            nn.MaxPool2d(kernel_size=2, stride=2)
         )
         self.classifier = classifier
         self.score = nn.Linear(4096, n_curb_classes)
     def forward(self, x):
         x = self.conv(x)
+        print(x.shape)
         x = x.view(x.size(0), -1)
         x = self.classifier(x)
         x = self.score(x)
