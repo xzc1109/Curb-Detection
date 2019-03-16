@@ -114,6 +114,7 @@ class CurbClassifier(nn.Module):
         self.score = nn.Linear(4096, n_curb_classes)
     def forward(self, x):
         x = x.view(x.size(0), -1)
+        print(x.shape)
         x = self.classifier(x)
         x = self.score(x)
         return x
@@ -192,3 +193,6 @@ def normal_init(m, mean, stddev, truncated=False):
     else:
         m.weight.data.normal_(mean, stddev)
         m.bias.data.zero_()
+
+
+
