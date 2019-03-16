@@ -129,3 +129,5 @@ INFO:tornado.access:200 POST /env/fasterrcnn-caffe (127.0.0.1) 0.92ms
 INFO:tornado.access:200 POST /events (127.0.0.1) 1.06ms
 INFO:tornado.access:200 POST /env/fasterrcnn-caffe (127.0.0.1) 0.98ms
 INFO:tornado.access:200 POST /events (127.0.0.1) 1.10ms
+INFO:tornado.access:200 POST /env/fasterrcnn-caffe (127.0.0.1) 0.90ms
+INFO:tornado.access:200 POST /events (127.0.0.1) 1.07ms
