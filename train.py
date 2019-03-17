@@ -146,12 +146,11 @@ def train(**kwargs):
 
                 # plot predicti bboxes
                 _bboxes, _labels, _scores, _scenes = trainer.faster_rcnn.predict([ori_img_], visualize=True)
-                print(_scenes)
                 pred_img = visdom_bbox(img=ori_img_,
                                        bbox=at.tonumpy(_bboxes[0]),
                                        label=at.tonumpy(_labels[0]).reshape(-1),
                                        score=at.tonumpy(_scores[0]),
-                                       scene=at.tonumpy(_scenes[0]))
+                                       scene=at.tonumpy(_scenes))
                 trainer.vis.img('pred_img', pred_img)
 
                 # rpn confusion matrix(meter)
