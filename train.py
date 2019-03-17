@@ -47,14 +47,14 @@ def eval(dataloader, faster_rcnn, test_num=10000):
         if pred_scenes_[0] == gt_scenes_[0]:
             count+=1
         if ii == test_num:
-            accuracy = count/test_num
+            acc = count/test_num
             break
 
     result = eval_detection_voc(
         pred_bboxes, pred_labels, pred_scores,
         gt_bboxes, gt_labels, gt_difficults,
         use_07_metric=True)
-    return result,accuracy
+    return result,acc
 
 def predictor(dataloader, faster_rcnn, test_num=10000):
     pred_bboxes, pred_labels, pred_scores = list(), list(), list()
