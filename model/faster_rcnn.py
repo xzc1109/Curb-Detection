@@ -260,7 +260,8 @@ class FasterRCNN(nn.Module):
             cls_bbox[:, 1::2] = (cls_bbox[:, 1::2]).clamp(min=0, max=size[1])
 
             prob = at.tonumpy(F.softmax(at.totensor(roi_score), dim=1))
-            prob_scene = at.tonumpy(F.softmax(at.totensor(scene_scores), dim=1))
+            scene_scores = at.tonumpy(scene_scores)
+            pred_scene = at.totensor(scene_scores.argmax())
 
 
             raw_cls_bbox = at.tonumpy(cls_bbox)
@@ -270,7 +271,7 @@ class FasterRCNN(nn.Module):
             bboxes.append(bbox)
             labels.append(label)
             scores.append(score)
-            scenes.append(prob_scene)
+            scenes.append(pred_scene)
         self.use_preset('evaluate')
         self.train()
         return bboxes, labels, scores, scenes
