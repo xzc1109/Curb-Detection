@@ -18,6 +18,7 @@ LossTuple = namedtuple('LossTuple',
                         'rpn_cls_loss',
                         'roi_loc_loss',
                         'roi_cls_loss',
+                        'scene_loss',
                         'total_loss'
                         ])
 
@@ -62,7 +63,7 @@ class FasterRCNNTrainer(nn.Module):
         self.roi_cm = ConfusionMeter(2)
         self.meters = {k: AverageValueMeter() for k in LossTuple._fields}  # average loss
 
-    def forward(self, imgs, bboxes, labels, scale):
+    def forward(self, imgs, bboxes, labels, scale, scenes):
         """Forward Faster R-CNN and calculate losses.
 
         Here are notations used.
@@ -96,15 +97,24 @@ class FasterRCNNTrainer(nn.Module):
 
         features = self.faster_rcnn.extractor(imgs)
 
+        scene_scores = self.faster_rcnn.sceneclassifier(features)
+
         rpn_locs, rpn_scores, rois, roi_indices, anchor = \
             self.faster_rcnn.rpn(features, img_size, scale)
 
         # Since batch size is one, convert variables to singular form
         bbox = bboxes[0]
         label = labels[0]
+        scene = scenes[0]
         rpn_score = rpn_scores[0]
         rpn_loc = rpn_locs[0]
         roi = rois
+
+        #-------------------Scene loss-------------------#
+        scene = at.totensor(scene).long()
+        scene = scene.squeeze(0)
+        scene_loss = F.cross_entropy(scene_scores,scene.cuda(),ignore_index=-1)
+
 
         # Sample RoIs and forward
         # it's fine to break the computation graph of rois, 
@@ -159,14 +169,14 @@ class FasterRCNNTrainer(nn.Module):
 
         self.roi_cm.add(at.totensor(roi_score, False), gt_roi_label.data.long())
 
-        losses = [rpn_loc_loss, rpn_cls_loss, roi_loc_loss, roi_cls_loss]
+        losses = [rpn_loc_loss, rpn_cls_loss, roi_loc_loss, roi_cls_loss, scene_loss]
         losses = losses + [sum(losses)]
 
         return LossTuple(*losses)
 
-    def train_step(self, imgs, bboxes, labels, scale):
+    def train_step(self, imgs, bboxes, labels, scale, scenes):
         self.optimizer.zero_grad()
-        losses = self.forward(imgs, bboxes, labels, scale)
+        losses = self.forward(imgs, bboxes, labels, scale, scenes)
         losses.total_loss.backward()
         self.optimizer.step()
         self.update_meters(losses)
@@ -198,7 +208,7 @@ class FasterRCNNTrainer(nn.Module):
             timestr = time.strftime('%m%d%H%M')
             save_path = 'checkpoints/fasterrcnn_%s' % timestr
             for k_, v_ in kwargs.items():
-                save_path += '_%s' % v_
+                save_path += '_%.2f_' % v_
 
         save_dir = os.path.dirname(save_path)
         if not os.path.exists(save_dir):

@@ -68,12 +68,13 @@ class FasterRCNN(nn.Module):
 
     """
 
-    def __init__(self, extractor, rpn, head,
+    def __init__(self, extractor,sceneclassifier, rpn, head,
                 loc_normalize_mean = (0., 0., 0., 0.),
                 loc_normalize_std = (0.1, 0.1, 0.2, 0.2)
     ):
         super(FasterRCNN, self).__init__()
         self.extractor = extractor
+        self.sceneclassifier = sceneclassifier
         self.rpn = rpn
         self.head = head
 
@@ -127,11 +128,12 @@ class FasterRCNN(nn.Module):
         img_size = x.shape[2:]
 
         h = self.extractor(x)
+        scene_scores = self.sceneclassifier(h)
         rpn_locs, rpn_scores, rois, roi_indices, anchor = \
             self.rpn(h, img_size, scale)
         roi_cls_locs, roi_scores = self.head(
             h, rois, roi_indices)
-        return roi_cls_locs, roi_scores, rois, roi_indices
+        return roi_cls_locs, roi_scores, rois, roi_indices, scene_scores
 
     def use_preset(self, preset):
         """Use the given preset during prediction.
@@ -227,14 +229,17 @@ class FasterRCNN(nn.Module):
         bboxes = list()
         labels = list()
         scores = list()
+        scenes = list()
+        scene_scores = list()
         for img, size in zip(prepared_imgs, sizes):
             img = at.totensor(img[None]).float()
             scale = img.shape[3] / size[1]
-            roi_cls_loc, roi_scores, rois, _ = self(img, scale=scale)
+            roi_cls_loc, roi_scores, rois, __, sc_scores= self(img, scale=scale)
             # We are assuming that batch size is 1.
             roi_score = roi_scores.data
             roi_cls_loc = roi_cls_loc.data
             roi = at.totensor(rois) / scale
+            scene_scores = sc_scores.data
 
             # Convert predictions to bounding boxes in image coordinates.
             # Bounding boxes are scaled to the scale of the input images.
@@ -255,6 +260,8 @@ class FasterRCNN(nn.Module):
             cls_bbox[:, 1::2] = (cls_bbox[:, 1::2]).clamp(min=0, max=size[1])
 
             prob = at.tonumpy(F.softmax(at.totensor(roi_score), dim=1))
+            prob_scene = at.tonumpy(F.softmax(at.totensor(scene_scores), dim=1))
+
 
             raw_cls_bbox = at.tonumpy(cls_bbox)
             raw_prob = at.tonumpy(prob)
@@ -263,10 +270,10 @@ class FasterRCNN(nn.Module):
             bboxes.append(bbox)
             labels.append(label)
             scores.append(score)
-
+            scenes.append(prob_scene)
         self.use_preset('evaluate')
         self.train()
-        return bboxes, labels, scores
+        return bboxes, labels, scores, scenes
 
     def get_optimizer(self):
         """

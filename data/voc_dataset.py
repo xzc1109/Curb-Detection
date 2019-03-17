@@ -97,6 +97,7 @@ class CurbROIDataset:
         bbox = list()
         label = list()
         difficult = list()
+        scene = list()
         for obj in anno.findall('object'):
             # when in not using difficult split, and the object is
             # difficult, skipt it.
@@ -111,8 +112,11 @@ class CurbROIDataset:
                 for tag in ('ymin', 'xmin', 'ymax', 'xmax')])
             name = obj.find('name').text.lower().strip()
             label.append(CURB_BBOX_LABEL_NAMES.index(name))
+            scene_type = obj.find('type').text.lower().strip()
+            scene.append(SCENE_NAMES.index(scene_type))
         bbox = np.stack(bbox).astype(np.float32)
         label = np.stack(label).astype(np.int32)
+        scene = np.stack(scene).astype(np.int32)
         # When `use_difficult==False`, all elements in `difficult` are False.
         difficult = np.array(difficult, dtype=np.bool).astype(np.uint8)  # PyTorch don't support np.bool
 
@@ -122,10 +126,15 @@ class CurbROIDataset:
 
         # if self.return_difficult:
         #     return img, bbox, label, difficult
-        return img, bbox, label, difficult
+        return img, bbox, label, difficult, scene
 
     __getitem__ = get_example
 
 
 CURB_BBOX_LABEL_NAMES = (
     'curb')
+
+SCENE_NAMES = (
+    'continuously_visible',
+    'intersection',
+    'obstacle')

@@ -27,25 +27,32 @@ matplotlib.use('agg')
 json_dir_path = '/home/xuzhongcong/mycode/CURB2019/'
 
 def eval(dataloader, faster_rcnn, test_num=10000):
-    pred_bboxes, pred_labels, pred_scores = list(), list(), list()
-    gt_bboxes, gt_labels, gt_difficults = list(), list(), list()
-    for ii, (imgs, sizes, gt_bboxes_, gt_labels_, gt_difficults_) in tqdm(enumerate(dataloader)):
+    count = 0
+    pred_bboxes, pred_labels, pred_scores, pred_scenes = list(), list(), list(), list()
+    gt_bboxes, gt_labels, gt_difficults, gt_scenes = list(), list(), list() ,list()
+    for ii, (imgs, sizes, gt_bboxes_, gt_labels_, gt_difficults_, gt_scenes_) in tqdm(enumerate(dataloader)):
         sizes = [sizes[0][0].item(), sizes[1][0].item()]
-        pred_bboxes_, pred_labels_, pred_scores_ = faster_rcnn.predict(imgs, [sizes])
+        pred_bboxes_, pred_labels_, pred_scores_, pred_scenes_ = faster_rcnn.predict(imgs, [sizes])
         #print(pred_bboxes_)
         gt_bboxes += list(gt_bboxes_.numpy())
         gt_labels += list(gt_labels_.numpy())
         gt_difficults += list(gt_difficults_.numpy())
+        gt_scenes += list(gt_scenes_.numpy())
         pred_bboxes += pred_bboxes_
         pred_labels += pred_labels_
         pred_scores += pred_scores_
-        if ii == test_num: break
+        pred_scenes += pred_scenes_
+        if pred_scenes_ == gt_scenes_:
+            count+=1
+        if ii == test_num:
+            accuracy = count/test_num
+            break
 
     result = eval_detection_voc(
         pred_bboxes, pred_labels, pred_scores,
         gt_bboxes, gt_labels, gt_difficults,
         use_07_metric=True)
-    return result
+    return result,accuracy
 
 def predictor(dataloader, faster_rcnn, test_num=10000):
     pred_bboxes, pred_labels, pred_scores = list(), list(), list()
@@ -117,10 +124,10 @@ def train(**kwargs):
     lr_ = opt.lr
     for epoch in range(opt.epoch):
         trainer.reset_meters()
-        for ii, (img, bbox_, label_, scale) in tqdm(enumerate(dataloader)):
+        for ii, (img, bbox_, label_, scale, scene_) in tqdm(enumerate(dataloader)):
             scale = at.scalar(scale)
-            img, bbox, label = img.cuda().float(), bbox_.cuda(), label_.cuda()
-            trainer.train_step(img, bbox, label, scale)
+            img, bbox, label, scene = img.cuda().float(), bbox_.cuda(), label_.cuda(), scene_.cuda()
+            trainer.train_step(img, bbox, label, scale, scene)
 
             if (ii + 1) % opt.plot_every == 0:
                 if os.path.exists(opt.debug_file):
@@ -133,7 +140,7 @@ def train(**kwargs):
                 ori_img_ = inverse_normalize(at.tonumpy(img[0]))
                 gt_img = visdom_bbox(ori_img_,
                                      at.tonumpy(bbox_[0]),
-                                     at.tonumpy(label_[0]))
+                                     at.tonumpy(scene_[0]))
                 trainer.vis.img('gt_img', gt_img)
 
                 # plot predicti bboxes
@@ -148,8 +155,9 @@ def train(**kwargs):
                 trainer.vis.text(str(trainer.rpn_cm.value().tolist()), win='rpn_cm')
                 # roi confusion matrix
                 trainer.vis.img('roi_cm', at.totensor(trainer.roi_cm.conf, False).float())
-        eval_result = eval(test_dataloader, faster_rcnn, test_num=opt.test_num)
+        eval_result, accuracy = eval(test_dataloader, faster_rcnn, test_num=opt.test_num)
         trainer.vis.plot('test_map', eval_result['map'])
+        trainer.vis.plot('accuracy', accuracy)
         lr_ = trainer.faster_rcnn.optimizer.param_groups[0]['lr']
         log_info = 'lr:{}, map:{},loss:{}'.format(str(lr_),
                                                   str(eval_result['map']),
@@ -158,7 +166,7 @@ def train(**kwargs):
 
         if eval_result['map'] > best_map:
             best_map = eval_result['map']
-            best_path = trainer.save(best_map=best_map)
+            best_path = trainer.save(best_map=best_map, accuracy = accuracy)
             #predictor(test_dataloader, faster_rcnn, test_num=opt.test_num)
         if epoch == 9:
             trainer.load(best_path)
