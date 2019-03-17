@@ -261,7 +261,7 @@ class FasterRCNN(nn.Module):
 
             prob = at.tonumpy(F.softmax(at.totensor(roi_score), dim=1))
             scene_scores = at.tonumpy(scene_scores)
-            pred_scene = at.totensor(scene_scores.argmax())
+            pred_scene = scene_scores.argmax()
 
 
             raw_cls_bbox = at.tonumpy(cls_bbox)
