@@ -141,7 +141,7 @@ def train(**kwargs):
                 gt_img = visdom_bbox(ori_img_,
                                      at.tonumpy(bbox_[0]),
                                      at.tonumpy(label_[0]),
-                                     at.tonumpy(_scenes[0]))
+                                     at.tonumpy(scene_[0]))
                 trainer.vis.img('gt_img', gt_img)
 
                 # plot predicti bboxes
