@@ -14,7 +14,10 @@ from matplotlib import pyplot as plot
 CURB_BBOX_LABEL_NAMES = (
     'curb',
 )
-
+SCENE_NAMES = (
+    'continuously_visible',
+    'intersection',
+    'obstacle')
 
 def vis_image(img, ax=None):
     """Visualize a color image.
@@ -41,7 +44,7 @@ def vis_image(img, ax=None):
     return ax
 
 
-def vis_bbox(img, bbox, label=None, score=None, ax=None):
+def vis_bbox(img, bbox, label=None, score=None, scene=None, ax=None):
     """Visualize bounding boxes inside image.
 
     Args:
@@ -70,6 +73,7 @@ def vis_bbox(img, bbox, label=None, score=None, ax=None):
     """
 
     label_names = list(CURB_BBOX_LABEL_NAMES) + ['bg']
+    scene_names = list(SCENE_NAMES)
     # add for index `-1`
     if label is not None and not len(bbox) == len(label):
         raise ValueError('The length of label must be same as that of bbox')
@@ -82,7 +86,8 @@ def vis_bbox(img, bbox, label=None, score=None, ax=None):
     # If there is no bounding box to display, visualize the image and exit.
     if len(bbox) == 0:
         return ax
-
+    caption = list()
+    caption.append(scene_names[scene])
     for i, bb in enumerate(bbox):
         xy = (bb[1], bb[0])
         height = bb[2] - bb[0]
@@ -90,8 +95,7 @@ def vis_bbox(img, bbox, label=None, score=None, ax=None):
         ax.add_patch(plot.Rectangle(
             xy, width, height, fill=False, edgecolor='red', linewidth=2))
 
-        caption = list()
-
+        
         if label is not None and label_names is not None:
             lb = label[i]
             if not (-1 <= lb < len(label_names)):  # modfy here to add backgroud
