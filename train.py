@@ -123,11 +123,11 @@ def train(**kwargs):
         print('load pretrained model from %s' % opt.load_path)
     trainer.vis.text(dataset.db.label_names, win='labels')
     best_map = 0
+    accuracy = 0
     lr_ = opt.lr
     for epoch in range(opt.epoch):
         trainer.reset_meters()
         for ii, (img, bbox_, label_, scale, scene_) in tqdm(enumerate(dataloader)):
-            eval_result, accuracy = eval(test_dataloader, faster_rcnn, test_num=opt.test_num)
             scale = at.scalar(scale)
             img, bbox, label, scene = img.cuda().float(), bbox_.cuda(), label_.cuda(), scene_.cuda()
             trainer.train_step(img, bbox, label, scale, scene)
