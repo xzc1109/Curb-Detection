@@ -138,20 +138,20 @@ def train(**kwargs):
 
                 # plot groud truth bboxes
                 ori_img_ = inverse_normalize(at.tonumpy(img[0]))
-                gt_img = visdom_bbox(ori_img_,
-                                     at.tonumpy(bbox_[0]),
-                                     at.tonumpy(label_[0]),
-                                     at.tonumpy(scene_[0]))
+                gt_img = visdom_bbox(img=ori_img_,
+                                     bbox=at.tonumpy(bbox_[0]),
+                                     label=at.tonumpy(label_[0]),
+                                     scene=at.tonumpy(scene_[0]))
                 trainer.vis.img('gt_img', gt_img)
 
                 # plot predicti bboxes
                 _bboxes, _labels, _scores, _scenes = trainer.faster_rcnn.predict([ori_img_], visualize=True)
                 print(_scenes)
-                pred_img = visdom_bbox(ori_img_,
-                                       at.tonumpy(_bboxes[0]),
-                                       at.tonumpy(_labels[0]).reshape(-1),
-                                       at.tonumpy(_scores[0]),
-                                       at.tonumpy(_scenes[0]))
+                pred_img = visdom_bbox(img=ori_img_,
+                                       bbox=at.tonumpy(_bboxes[0]),
+                                       label=at.tonumpy(_labels[0]).reshape(-1),
+                                       score=at.tonumpy(_scores[0]),
+                                       scene=at.tonumpy(_scenes[0]).reshape(-1))
                 trainer.vis.img('pred_img', pred_img)
 
                 # rpn confusion matrix(meter)
