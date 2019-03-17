@@ -42,7 +42,9 @@ def eval(dataloader, faster_rcnn, test_num=10000):
         pred_labels += pred_labels_
         pred_scores += pred_scores_
         pred_scenes += pred_scenes_
-        if pred_scenes_ == gt_scenes_:
+        gt_scenes_ = gt_scenes_.squeeze(0)
+        gt_scenes_ = gt_scenes_.numpy()
+        if pred_scenes_[0] == gt_scenes_[0]:
             count+=1
         if ii == test_num:
             accuracy = count/test_num
