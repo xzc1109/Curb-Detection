@@ -33,7 +33,7 @@ def eval(dataloader, faster_rcnn, test_num=10000):
     for ii, (imgs, sizes, gt_bboxes_, gt_labels_, gt_difficults_, gt_scenes_) in tqdm(enumerate(dataloader)):
         sizes = [sizes[0][0].item(), sizes[1][0].item()]
         pred_bboxes_, pred_labels_, pred_scores_, pred_scenes_ = faster_rcnn.predict(imgs, [sizes])
-        #print(pred_bboxes_)
+        print('pred_scenes',pred_scenes_,'\n')
         gt_bboxes += list(gt_bboxes_.numpy())
         gt_labels += list(gt_labels_.numpy())
         gt_difficults += list(gt_difficults_.numpy())
@@ -125,6 +125,8 @@ def train(**kwargs):
     for epoch in range(opt.epoch):
         trainer.reset_meters()
         for ii, (img, bbox_, label_, scale, scene_) in tqdm(enumerate(dataloader)):
+            print('scene___',scene_,'\n')
+            eval_result, accuracy = eval(test_dataloader, faster_rcnn, test_num=opt.test_num)
             scale = at.scalar(scale)
             img, bbox, label, scene = img.cuda().float(), bbox_.cuda(), label_.cuda(), scene_.cuda()
             trainer.train_step(img, bbox, label, scale, scene)
