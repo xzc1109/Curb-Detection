@@ -86,9 +86,9 @@ def vis_bbox(img, bbox, label=None, score=None, scene=None, ax=None):
     # If there is no bounding box to display, visualize the image and exit.
     if len(bbox) == 0:
         return ax
-    caption = list()
-    caption.append(scene_names[scene[0]])
     for i, bb in enumerate(bbox):
+        caption = list()
+        caption.append(scene_names[scene[0]])
         xy = (bb[1], bb[0])
         height = bb[2] - bb[0]
         width = bb[3] - bb[1]
