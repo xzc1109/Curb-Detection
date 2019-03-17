@@ -112,7 +112,8 @@ class FasterRCNNTrainer(nn.Module):
         #-------------------Scene loss-------------------#
         scene = at.totensor(scene).long()
         #scene = scene.squeeze(0)
-        scene_loss = F.cross_entropy(scene_scores,scene.cuda(),ignore_index=-1)
+        scene_loss = F.cross_entropy(scene_scores,scene.cuda())
+        scene_loss = scene_loss * 0.2
 
 
         # Sample RoIs and forward
@@ -168,7 +169,7 @@ class FasterRCNNTrainer(nn.Module):
 
         self.roi_cm.add(at.totensor(roi_score, False), gt_roi_label.data.long())
 
-        losses = [rpn_loc_loss, rpn_cls_loss, roi_loc_loss, roi_cls_loss, 0.2*scene_loss]
+        losses = [rpn_loc_loss, rpn_cls_loss, roi_loc_loss, roi_cls_loss, scene_loss]
         losses = losses + [sum(losses)]
 
         return LossTuple(*losses)
