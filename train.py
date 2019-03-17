@@ -72,7 +72,7 @@ def predictor(dataloader, faster_rcnn, test_num=10000):
         #print(pred_bboxes)
         pred_labels += pred_labels_
         pred_scores += pred_scores_
-        pred_scenes += SCENE_NAMES[pred_scenes_[0]]
+        pred_scenes.append(SCENE_NAMES[pred_scenes_[0]])
     jlist = list()
     json_path = os.path.join(json_dir_path,'predic_result.json')
     json_file = open(json_path,'w')
@@ -80,6 +80,7 @@ def predictor(dataloader, faster_rcnn, test_num=10000):
         maxindex = pred_scores[i].argmax()
         jlist.append({str(i+1):pred_bboxes[i][maxindex].tolist()})
         jlist.append({str(i+1):pred_scenes[i]})
+        print(pred_scenes[i])
     json.dump(jlist,json_file,indent=1)
     json_file.close()
     print('predict %d images successfully, the result is saved in %s'%(test_num,json_file))
