@@ -8,3 +8,5 @@ checkpoints
 .vscode/
 *.out
 nohup.out
+/nohup.out
+nohup.out/

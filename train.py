@@ -27,32 +27,25 @@ matplotlib.use('agg')
 json_dir_path = '/home/xuzhongcong/mycode/CURB2019/'
 
 def eval(dataloader, faster_rcnn, test_num=10000):
-    count = 0
-    pred_curb_classes, pred_bboxes, pred_labels, pred_scores =list(), list(), list(), list()
-    gt_bboxes, gt_labels, gt_difficults, gt_curb_class_labels = list(), list(), list(), list()
-    for ii, (imgs, sizes, gt_bboxes_, gt_labels_, gt_difficults_, gt_curb_class_labels_) in tqdm(enumerate(dataloader)):
+    pred_bboxes, pred_labels, pred_scores = list(), list(), list()
+    gt_bboxes, gt_labels, gt_difficults = list(), list(), list()
+    for ii, (imgs, sizes, gt_bboxes_, gt_labels_, gt_difficults_) in tqdm(enumerate(dataloader)):
         sizes = [sizes[0][0].item(), sizes[1][0].item()]
-        pred_curb_classes_, pred_bboxes_, pred_labels_, pred_scores_ = faster_rcnn.predict(imgs, [sizes])
+        pred_bboxes_, pred_labels_, pred_scores_ = faster_rcnn.predict(imgs, [sizes])
         #print(pred_bboxes_)
         gt_bboxes += list(gt_bboxes_.numpy())
         gt_labels += list(gt_labels_.numpy())
         gt_difficults += list(gt_difficults_.numpy())
-        gt_curb_class_labels += list(gt_curb_class_labels_.numpy())
-        pred_curb_classes += pred_curb_classes_
         pred_bboxes += pred_bboxes_
         pred_labels += pred_labels_
         pred_scores += pred_scores_
         if ii == test_num: break
-    
+
     result = eval_detection_voc(
         pred_bboxes, pred_labels, pred_scores,
         gt_bboxes, gt_labels, gt_difficults,
         use_07_metric=True)
-    for i,item in pred_bboxes:
-        if item == pred_curb_classes[i]:
-            count += 1
-    curb_class_accuracy = count/test_num
-    return result,curb_class_accuracy
+    return result
 
 def predictor(dataloader, faster_rcnn, test_num=10000):
     pred_bboxes, pred_labels, pred_scores = list(), list(), list()
@@ -73,7 +66,7 @@ def predictor(dataloader, faster_rcnn, test_num=10000):
     json_file = open(json_path,'w')
     for i in range(len(pred_bboxes)):
         maxindex = pred_scores[i].argmax()
-        jlist.append({str(i+1).zerofill(6):pred_bboxes[i][maxindex].tolist()})
+        jlist.append({str(i+1):pred_bboxes[i][maxindex].tolist()})
     json.dump(jlist,json_file,indent=1)
     json_file.close()
     print('predict %d images successfully, the result is saved in %s'%(test_num,json_file))
@@ -121,14 +114,13 @@ def train(**kwargs):
         print('load pretrained model from %s' % opt.load_path)
     trainer.vis.text(dataset.db.label_names, win='labels')
     best_map = 0
-    best_accuracy = 0
     lr_ = opt.lr
     for epoch in range(opt.epoch):
         trainer.reset_meters()
-        for ii, (img, bbox_, label_, scale, curb_class_label_) in tqdm(enumerate(dataloader)):
+        for ii, (img, bbox_, label_, scale) in tqdm(enumerate(dataloader)):
             scale = at.scalar(scale)
-            img, bbox, label, curb_class_label = img.cuda().float(), bbox_.cuda(), label_.cuda(), curb_class_label_.cuda()
-            trainer.train_step(img, bbox, label, scale,curb_class_label)
+            img, bbox, label = img.cuda().float(), bbox_.cuda(), label_.cuda()
+            trainer.train_step(img, bbox, label, scale)
 
             if (ii + 1) % opt.plot_every == 0:
                 if os.path.exists(opt.debug_file):
@@ -145,11 +137,10 @@ def train(**kwargs):
                 trainer.vis.img('gt_img', gt_img)
 
                 # plot predicti bboxes
-                _curb_class_labels, _bboxes, _labels, _scores = trainer.faster_rcnn.predict([ori_img_], visualize=True)
+                _bboxes, _labels, _scores = trainer.faster_rcnn.predict([ori_img_], visualize=True)
                 pred_img = visdom_bbox(ori_img_,
-                                       at.tonumpy(_curb_class_labels[0].reshape(-1)),
                                        at.tonumpy(_bboxes[0]),
-                                       #at.tonumpy(_labels[0]).reshape(-1),
+                                       at.tonumpy(_labels[0]).reshape(-1),
                                        at.tonumpy(_scores[0]))
                 trainer.vis.img('pred_img', pred_img)
 
@@ -157,7 +148,7 @@ def train(**kwargs):
                 trainer.vis.text(str(trainer.rpn_cm.value().tolist()), win='rpn_cm')
                 # roi confusion matrix
                 trainer.vis.img('roi_cm', at.totensor(trainer.roi_cm.conf, False).float())
-        eval_result,curb_class_accuracy = eval(test_dataloader, faster_rcnn, test_num=opt.test_num)
+        eval_result = eval(test_dataloader, faster_rcnn, test_num=opt.test_num)
         trainer.vis.plot('test_map', eval_result['map'])
         lr_ = trainer.faster_rcnn.optimizer.param_groups[0]['lr']
         log_info = 'lr:{}, map:{},loss:{}'.format(str(lr_),
@@ -167,7 +158,7 @@ def train(**kwargs):
 
         if eval_result['map'] > best_map:
             best_map = eval_result['map']
-            best_path = trainer.save(best_map=best_map,curb_class_accuracy=curb_class_accuracy)
+            best_path = trainer.save(best_map=best_map)
             #predictor(test_dataloader, faster_rcnn, test_num=opt.test_num)
         if epoch == 9:
             trainer.load(best_path)

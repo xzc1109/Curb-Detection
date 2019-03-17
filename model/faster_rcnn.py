@@ -12,7 +12,7 @@ from data.dataset import preprocess
 from torch.nn import functional as F
 from utils.config import opt
 
-curb_classes = ['continuously_visible','obstacle','intersection']
+
 def nograd(f):
     def new_f(*args,**kwargs):
         with t.no_grad():
@@ -68,13 +68,12 @@ class FasterRCNN(nn.Module):
 
     """
 
-    def __init__(self, extractor, curbclassifier, rpn, head,
+    def __init__(self, extractor, rpn, head,
                 loc_normalize_mean = (0., 0., 0., 0.),
                 loc_normalize_std = (0.1, 0.1, 0.2, 0.2)
     ):
         super(FasterRCNN, self).__init__()
         self.extractor = extractor
-        self.curbclassifier = curbclassifier
         self.rpn = rpn
         self.head = head
 
@@ -128,12 +127,11 @@ class FasterRCNN(nn.Module):
         img_size = x.shape[2:]
 
         h = self.extractor(x)
-        curb_class_scores = self.curbclassifier(h)
         rpn_locs, rpn_scores, rois, roi_indices, anchor = \
             self.rpn(h, img_size, scale)
         roi_cls_locs, roi_scores = self.head(
             h, rois, roi_indices)
-        return curb_class_scores, roi_cls_locs, roi_scores, rois, roi_indices
+        return roi_cls_locs, roi_scores, rois, roi_indices
 
     def use_preset(self, preset):
         """Use the given preset during prediction.
@@ -186,7 +184,7 @@ class FasterRCNN(nn.Module):
         return bbox, label, score
 
     @nograd
-    def predict(self, imgs,sizes=None,visualize=False):#take care of the curb class label
+    def predict(self, imgs,sizes=None,visualize=False):
         """Detect objects from images.
 
         This method predicts objects for each image.
@@ -229,11 +227,10 @@ class FasterRCNN(nn.Module):
         bboxes = list()
         labels = list()
         scores = list()
-        predict_curb_label = list()
         for img, size in zip(prepared_imgs, sizes):
             img = at.totensor(img[None]).float()
             scale = img.shape[3] / size[1]
-            curb_class_scores, roi_cls_loc, roi_scores, rois, _ = self(img, scale=scale)
+            roi_cls_loc, roi_scores, rois, _ = self(img, scale=scale)
             # We are assuming that batch size is 1.
             roi_score = roi_scores.data
             roi_cls_loc = roi_cls_loc.data
@@ -266,10 +263,10 @@ class FasterRCNN(nn.Module):
             bboxes.append(bbox)
             labels.append(label)
             scores.append(score)
-            predict_curb_label.append(curb_classes[np.argmax(curb_class_scores)])
+
         self.use_preset('evaluate')
         self.train()
-        return predict_curb_label, bboxes, labels, scores
+        return bboxes, labels, scores
 
     def get_optimizer(self):
         """

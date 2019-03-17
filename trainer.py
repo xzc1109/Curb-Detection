@@ -17,7 +17,7 @@ LossTuple = namedtuple('LossTuple',
                        ['rpn_loc_loss',
                         'rpn_cls_loss',
                         'roi_loc_loss',
-                        'curb_class_loss',
+                        'roi_cls_loss',
                         'total_loss'
                         ])
 
@@ -26,7 +26,7 @@ class FasterRCNNTrainer(nn.Module):
     """wrapper for conveniently training. return losses
 
     The losses include:
-    * :obj:`curb_class_loss`: The classification loss for curbs.
+
     * :obj:`rpn_loc_loss`: The localization loss for \
         Region Proposal Network (RPN).
     * :obj:`rpn_cls_loss`: The classification loss for RPN.
@@ -62,7 +62,7 @@ class FasterRCNNTrainer(nn.Module):
         self.roi_cm = ConfusionMeter(2)
         self.meters = {k: AverageValueMeter() for k in LossTuple._fields}  # average loss
 
-    def forward(self, imgs, bboxes, labels, scale, curb_class_label):
+    def forward(self, imgs, bboxes, labels, scale):
         """Forward Faster R-CNN and calculate losses.
 
         Here are notations used.
@@ -95,11 +95,7 @@ class FasterRCNNTrainer(nn.Module):
         img_size = (H, W)
 
         features = self.faster_rcnn.extractor(imgs)
-        curb_class_scores = self.faster_rcnn.curbclassifier(features)
-        #-------------------Curb classes loss------------------#
-        curb_class_label = at.totensor(curb_class_label).long()
-        curb_class_label = curb_class_label.squeeze(0)
-        curb_class_loss = F.cross_entropy(curb_class_scores,curb_class_label.cuda(),ignore_index=-1)##There comes the problems how to get curb_class_label??????
+
         rpn_locs, rpn_scores, rois, roi_indices, anchor = \
             self.faster_rcnn.rpn(features, img_size, scale)
 
@@ -121,7 +117,7 @@ class FasterRCNNTrainer(nn.Module):
             self.loc_normalize_std)
         # NOTE it's all zero because now it only support for batch=1 now
         sample_roi_index = t.zeros(len(sample_roi))
-        roi_cls_loc,__ = self.faster_rcnn.head(
+        roi_cls_loc, roi_score = self.faster_rcnn.head(
             features,
             sample_roi,
             sample_roi_index)
@@ -159,17 +155,18 @@ class FasterRCNNTrainer(nn.Module):
             gt_roi_label.data,
             self.roi_sigma)
 
-        #roi_cls_loss = nn.CrossEntropyLoss()(roi_score, gt_roi_label.cuda())
+        roi_cls_loss = nn.CrossEntropyLoss()(roi_score, gt_roi_label.cuda())
 
-        #self.roi_cm.add(at.totensor(roi_score, False), gt_roi_label.data.long())
+        self.roi_cm.add(at.totensor(roi_score, False), gt_roi_label.data.long())
 
-        losses = [rpn_loc_loss, rpn_cls_loss, roi_loc_loss,curb_class_loss]
+        losses = [rpn_loc_loss, rpn_cls_loss, roi_loc_loss, roi_cls_loss]
         losses = losses + [sum(losses)]
+
         return LossTuple(*losses)
 
-    def train_step(self, imgs, bboxes, labels, scale, curb_class_label):
+    def train_step(self, imgs, bboxes, labels, scale):
         self.optimizer.zero_grad()
-        losses = self.forward(imgs, bboxes, labels, scale, curb_class_label)
+        losses = self.forward(imgs, bboxes, labels, scale)
         losses.total_loss.backward()
         self.optimizer.step()
         self.update_meters(losses)
@@ -201,7 +198,7 @@ class FasterRCNNTrainer(nn.Module):
             timestr = time.strftime('%m%d%H%M')
             save_path = 'checkpoints/fasterrcnn_%s' % timestr
             for k_, v_ in kwargs.items():
-                save_path += '_%.3f_' % v_
+                save_path += '_%s' % v_
 
         save_dir = os.path.dirname(save_path)
         if not os.path.exists(save_dir):
