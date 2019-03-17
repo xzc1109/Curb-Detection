@@ -61,8 +61,8 @@ def eval(dataloader, faster_rcnn, test_num=10000):
 
 def predictor(dataloader, faster_rcnn, test_num=10000):
     pred_bboxes, pred_labels, pred_scores, pred_scenes = list(), list(), list(), list()
-    gt_bboxes, gt_labels, gt_difficults = list(), list(), list()
-    for ii, (imgs, sizes, gt_bboxes_, gt_labels_, gt_difficults_) in tqdm(enumerate(dataloader)):
+    gt_bboxes, gt_labels, gt_difficults, gt_scenes = list(), list(), list() ,list()
+    for ii, (imgs, sizes, gt_bboxes_, gt_labels_, gt_difficults_, gt_scenes_) in tqdm(enumerate(dataloader)):
         sizes = [sizes[0][0].item(), sizes[1][0].item()]
         pred_bboxes_, pred_labels_, pred_scores_, pred_scenes_ = faster_rcnn.predict(imgs, [sizes])
         gt_bboxes += list(gt_bboxes_.numpy())
@@ -73,7 +73,6 @@ def predictor(dataloader, faster_rcnn, test_num=10000):
         pred_labels += pred_labels_
         pred_scores += pred_scores_
         pred_scenes += SCENE_NAMES[pred_scenes_[0]]
-        if ii == test_num: break
     jlist = list()
     json_path = os.path.join(json_dir_path,'predic_result.json')
     json_file = open(json_path,'w')
