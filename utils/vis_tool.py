@@ -87,7 +87,6 @@ def vis_bbox(img, bbox, label=None, score=None, scene=None, ax=None):
     if len(bbox) == 0:
         return ax
     caption = list()
-    print(scene)
     caption.append(scene_names[scene[0]])
     for i, bb in enumerate(bbox):
         xy = (bb[1], bb[0])

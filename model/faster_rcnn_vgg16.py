@@ -121,7 +121,6 @@ class SceneClassifier(nn.Module):
         x = x.view(x.size(0), -1)
         x = self.classifier(x)
         x = self.score(x)
-        print('scene scores\n',x)
         return x
 
 class VGG16RoIHead(nn.Module):
