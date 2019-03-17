@@ -98,7 +98,6 @@ class FasterRCNNTrainer(nn.Module):
         features = self.faster_rcnn.extractor(imgs)
 
         scene_scores = self.faster_rcnn.sceneclassifier(features)
-
         rpn_locs, rpn_scores, rois, roi_indices, anchor = \
             self.faster_rcnn.rpn(features, img_size, scale)
 
@@ -112,7 +111,7 @@ class FasterRCNNTrainer(nn.Module):
 
         #-------------------Scene loss-------------------#
         scene = at.totensor(scene).long()
-        scene = scene.squeeze(0)
+        #scene = scene.squeeze(0)
         scene_loss = F.cross_entropy(scene_scores,scene.cuda(),ignore_index=-1)
 
 
@@ -169,7 +168,7 @@ class FasterRCNNTrainer(nn.Module):
 
         self.roi_cm.add(at.totensor(roi_score, False), gt_roi_label.data.long())
 
-        losses = [rpn_loc_loss, rpn_cls_loss, roi_loc_loss, roi_cls_loss, scene_loss]
+        losses = [rpn_loc_loss, rpn_cls_loss, roi_loc_loss, roi_cls_loss, 0.1*scene_loss]
         losses = losses + [sum(losses)]
 
         return LossTuple(*losses)
