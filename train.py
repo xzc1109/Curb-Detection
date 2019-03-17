@@ -145,6 +145,7 @@ def train(**kwargs):
 
                 # plot predicti bboxes
                 _bboxes, _labels, _scores, _scenes = trainer.faster_rcnn.predict([ori_img_], visualize=True)
+                print(_scenes)
                 pred_img = visdom_bbox(ori_img_,
                                        at.tonumpy(_bboxes[0]),
                                        at.tonumpy(_labels[0]).reshape(-1),
