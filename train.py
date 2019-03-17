@@ -28,6 +28,7 @@ json_dir_path = '/home/xuzhongcong/mycode/CURB2019/'
 
 def eval(dataloader, faster_rcnn, test_num=10000):
     count = 0
+    acc = 0.0
     pred_bboxes, pred_labels, pred_scores, pred_scenes = list(), list(), list(), list()
     gt_bboxes, gt_labels, gt_difficults, gt_scenes = list(), list(), list() ,list()
     for ii, (imgs, sizes, gt_bboxes_, gt_labels_, gt_difficults_, gt_scenes_) in tqdm(enumerate(dataloader)):
@@ -47,9 +48,8 @@ def eval(dataloader, faster_rcnn, test_num=10000):
         if pred_scenes_[0] == gt_scenes_[0]:
             count+=1
         if ii == test_num:
-            acc = count/test_num
             break
-
+    acc = count/test_num  
     result = eval_detection_voc(
         pred_bboxes, pred_labels, pred_scores,
         gt_bboxes, gt_labels, gt_difficults,
