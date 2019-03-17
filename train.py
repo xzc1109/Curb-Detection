@@ -151,7 +151,7 @@ def train(**kwargs):
                                        bbox=at.tonumpy(_bboxes[0]),
                                        label=at.tonumpy(_labels[0]).reshape(-1),
                                        score=at.tonumpy(_scores[0]),
-                                       scene=at.tonumpy(_scenes[0]).reshape(-1))
+                                       scene=at.tonumpy(_scenes[0]))
                 trainer.vis.img('pred_img', pred_img)
 
                 # rpn confusion matrix(meter)
