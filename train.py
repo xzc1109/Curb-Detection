@@ -19,7 +19,10 @@ from utils.eval_tool import eval_detection_voc
 # fix for ulimit
 # https://github.com/pytorch/pytorch/issues/973#issuecomment-346405667
 import resource
-
+SCENE_NAMES = [
+    'continuously_visible',
+    'intersection',
+    'obstacle']
 rlimit = resource.getrlimit(resource.RLIMIT_NOFILE)
 resource.setrlimit(resource.RLIMIT_NOFILE, (20480, rlimit[1]))
 
@@ -57,11 +60,11 @@ def eval(dataloader, faster_rcnn, test_num=10000):
     return result,acc
 
 def predictor(dataloader, faster_rcnn, test_num=10000):
-    pred_bboxes, pred_labels, pred_scores = list(), list(), list()
+    pred_bboxes, pred_labels, pred_scores, pred_scenes = list(), list(), list(), list()
     gt_bboxes, gt_labels, gt_difficults = list(), list(), list()
     for ii, (imgs, sizes, gt_bboxes_, gt_labels_, gt_difficults_) in tqdm(enumerate(dataloader)):
         sizes = [sizes[0][0].item(), sizes[1][0].item()]
-        pred_bboxes_, pred_labels_, pred_scores_ = faster_rcnn.predict(imgs, [sizes])
+        pred_bboxes_, pred_labels_, pred_scores_, pred_scenes_ = faster_rcnn.predict(imgs, [sizes])
         gt_bboxes += list(gt_bboxes_.numpy())
         gt_labels += list(gt_labels_.numpy())
         gt_difficults += list(gt_difficults_.numpy())
@@ -69,6 +72,7 @@ def predictor(dataloader, faster_rcnn, test_num=10000):
         #print(pred_bboxes)
         pred_labels += pred_labels_
         pred_scores += pred_scores_
+        pred_scenes += SCENE_NAMES[pred_scenes_[0]]
         if ii == test_num: break
     jlist = list()
     json_path = os.path.join(json_dir_path,'predic_result.json')
@@ -76,6 +80,7 @@ def predictor(dataloader, faster_rcnn, test_num=10000):
     for i in range(len(pred_bboxes)):
         maxindex = pred_scores[i].argmax()
         jlist.append({str(i+1):pred_bboxes[i][maxindex].tolist()})
+        jlist.append({str(i+1):pred_scenes[i].tolist()})
     json.dump(jlist,json_file,indent=1)
     json_file.close()
     print('predict %d images successfully, the result is saved in %s'%(test_num,json_file))
@@ -123,6 +128,7 @@ def train(**kwargs):
         print('load pretrained model from %s' % opt.load_path)
     trainer.vis.text(dataset.db.label_names, win='labels')
     best_map = 0
+    best_acc = 0
     accuracy = 0
     lr_ = opt.lr
     for epoch in range(opt.epoch):
@@ -169,8 +175,11 @@ def train(**kwargs):
                                                   str(trainer.get_meter_data()))
         trainer.vis.log(log_info)
 
-        if eval_result['map'] > best_map:
+        if (eval_result['map'] > best_map):
             best_map = eval_result['map']
+            best_path = trainer.save(best_map=best_map, accuracy = accuracy)
+        if (accuracy > best_acc):
+            best_acc = accuracy
             best_path = trainer.save(best_map=best_map, accuracy = accuracy)
             #predictor(test_dataloader, faster_rcnn, test_num=opt.test_num)
         if epoch == 9:
