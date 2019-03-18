@@ -74,7 +74,7 @@ class CurbROIDataset:
         self.use_difficult = use_difficult
         self.return_difficult = return_difficult
         self.label_names = CURB_BBOX_LABEL_NAMES
-
+        self.split = split
     def __len__(self):
         return len(self.ids)
 
@@ -91,43 +91,49 @@ class CurbROIDataset:
             tuple of an image and bounding boxes
 
         """
-        id_ = self.ids[i]
-        anno = ET.parse(
-            os.path.join(self.data_dir, 'Annotations', id_ + '.xml'))
-        bbox = list()
-        label = list()
-        difficult = list()
-        scene = list()
-        for obj in anno.findall('object'):
-            # when in not using difficult split, and the object is
-            # difficult, skipt it.
-            if not self.use_difficult and int(obj.find('difficult').text) == 1:
-                continue
+        if self.split != 'predict':
+            id_ = self.ids[i]
+            anno = ET.parse(
+                os.path.join(self.data_dir, 'Annotations', id_ + '.xml'))
+            bbox = list()
+            label = list()
+            difficult = list()
+            scene = list()
+            for obj in anno.findall('object'):
+                # when in not using difficult split, and the object is
+                # difficult, skipt it.
+                if not self.use_difficult and int(obj.find('difficult').text) == 1:
+                    continue
 
-            difficult.append(int(obj.find('difficult').text))
-            bndbox_anno = obj.find('bndbox')
-            # subtract 1 to make pixel indexes 0-based
-            bbox.append([
-                int(bndbox_anno.find(tag).text) - 1
-                for tag in ('ymin', 'xmin', 'ymax', 'xmax')])
-            name = obj.find('name').text.lower().strip()
-            label.append(CURB_BBOX_LABEL_NAMES.index(name))
-            scene_type = obj.find('type').text.lower().strip()
-            scene.append(SCENE_NAMES.index(scene_type))
-        bbox = np.stack(bbox).astype(np.float32)
-        label = np.stack(label).astype(np.int32)
-        scene = np.stack(scene).astype(np.int32)
-        # When `use_difficult==False`, all elements in `difficult` are False.
-        difficult = np.array(difficult, dtype=np.bool).astype(np.uint8)  # PyTorch don't support np.bool
+                difficult.append(int(obj.find('difficult').text))
+                bndbox_anno = obj.find('bndbox')
+                # subtract 1 to make pixel indexes 0-based
+                bbox.append([
+                    int(bndbox_anno.find(tag).text) - 1
+                    for tag in ('ymin', 'xmin', 'ymax', 'xmax')])
+                name = obj.find('name').text.lower().strip()
+                label.append(CURB_BBOX_LABEL_NAMES.index(name))
+                scene_type = obj.find('type').text.lower().strip()
+                scene.append(SCENE_NAMES.index(scene_type))
+            bbox = np.stack(bbox).astype(np.float32)
+            label = np.stack(label).astype(np.int32)
+            scene = np.stack(scene).astype(np.int32)
+            # When `use_difficult==False`, all elements in `difficult` are False.
+            difficult = np.array(difficult, dtype=np.bool).astype(np.uint8)  # PyTorch don't support np.bool
 
-        # Load a image
-        img_file = os.path.join(self.data_dir, 'JPEGImages', id_ + '.jpg')
-        img = read_image(img_file, color=True)
+            # Load a image
+            img_file = os.path.join(self.data_dir, 'JPEGImages', id_ + '.jpg')
+            img = read_image(img_file, color=True)
 
-        # if self.return_difficult:
-        #     return img, bbox, label, difficult
-        return img, bbox, label, difficult, scene, id_
-
+            # if self.return_difficult:
+            #     return img, bbox, label, difficult
+            return img, bbox, label, difficult, scene, id_
+        else:
+            id_ = self.ids[i]
+            img_file = os.path.join(self.data_dir, 'JPEGImages', id_ + '.jpg')
+            img = read_image(img_file, color=True)
+            return img, id_
+            
     __getitem__ = get_example
 
 
