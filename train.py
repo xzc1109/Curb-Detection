@@ -27,7 +27,7 @@ rlimit = resource.getrlimit(resource.RLIMIT_NOFILE)
 resource.setrlimit(resource.RLIMIT_NOFILE, (20480, rlimit[1]))
 
 matplotlib.use('agg')
-json_dir_path = '/home/xuzhongcong/mycode/CURB2019/'
+json_dir_path = opt.predict_voc_data_dir
 
 def eval(dataloader, faster_rcnn, test_num=10000):
     count = 0
@@ -80,7 +80,7 @@ def predictor(dataloader, faster_rcnn, predict_num=10000):
         #print(pred_scenes[i])
     json.dump(jlist,json_file,indent=1)
     json_file.close()
-    print('predict %d images successfully, the result is saved in %s'%(predict_num,json_file))
+    print('predict %d images successfully, the result is saved in %s/%s.\n'%(predict_num,json_dir_path,json_file))
 
 def predict(**kwargs):
     opt._parse(kwargs)
