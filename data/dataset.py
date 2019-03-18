@@ -134,9 +134,9 @@ class PredictDataset:
         self.db = CurbROIDataset(opt.predict_voc_data_dir, split=split, use_difficult=use_difficult)
 
     def __getitem__(self, idx):
-        ori_img, bbox, label, difficult, scene, img_id = self.db.get_example(idx)
+        ori_img, img_id = self.db.get_example(idx)
         img = preprocess(ori_img)
-        return img, ori_img.shape[1:], bbox, label, difficult, scene, img_id
+        return img, ori_img.shape[1:],img_id
 
     def __len__(self):
         return len(self.db)

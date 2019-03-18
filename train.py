@@ -61,7 +61,7 @@ def eval(dataloader, faster_rcnn, test_num=10000):
 
 def predictor(dataloader, faster_rcnn, predict_num=10000):
     pred_bboxes, pred_labels, pred_scores, pred_scenes, img_ids = list(), list(), list(), list(), list()
-    for ii, (imgs,img_id) in tqdm(enumerate(dataloader)):
+    for ii, (imgs, sizes, img_id) in tqdm(enumerate(dataloader)):
         sizes = [sizes[0][0].item(), sizes[1][0].item()]
         img_ids.append(str(img_id))
         pred_bboxes_, pred_labels_, pred_scores_, pred_scenes_ = faster_rcnn.predict(imgs, [sizes])
