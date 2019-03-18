@@ -59,15 +59,11 @@ def eval(dataloader, faster_rcnn, test_num=10000):
         use_07_metric=True)
     return result,acc
 
-def predictor(dataloader, faster_rcnn, test_num=10000):
+def predictor(dataloader, faster_rcnn, predict_num=10000):
     pred_bboxes, pred_labels, pred_scores, pred_scenes = list(), list(), list(), list()
-    gt_bboxes, gt_labels, gt_difficults, gt_scenes = list(), list(), list() ,list()
-    for ii, (imgs, sizes, gt_bboxes_, gt_labels_, gt_difficults_, gt_scenes_, img_id) in tqdm(enumerate(dataloader)):
+    for ii, (imgs, sizes, __, __, __, __, img_id) in tqdm(enumerate(dataloader)):
         sizes = [sizes[0][0].item(), sizes[1][0].item()]
         pred_bboxes_, pred_labels_, pred_scores_, pred_scenes_ = faster_rcnn.predict(imgs, [sizes])
-        gt_bboxes += list(gt_bboxes_.numpy())
-        gt_labels += list(gt_labels_.numpy())
-        gt_difficults += list(gt_difficults_.numpy())
         pred_bboxes += pred_bboxes_
         #print(pred_bboxes)
         pred_labels += pred_labels_
@@ -83,7 +79,7 @@ def predictor(dataloader, faster_rcnn, test_num=10000):
         print(pred_scenes[i])
     json.dump(jlist,json_file,indent=1)
     json_file.close()
-    print('predict %d images successfully, the result is saved in %s'%(test_num,json_file))
+    print('predict %d images successfully, the result is saved in %s'%(predict_num,json_file))
 
 def predict(**kwargs):
     opt._parse(kwargs)
@@ -101,7 +97,7 @@ def predict(**kwargs):
     if opt.load_path:
         trainer.load(opt.load_path)
         print('load best_model from %s complete'%opt.load_path)
-    predictor(predict_dataloader, faster_rcnn, test_num=opt.test_num)
+    predictor(predict_dataloader, faster_rcnn, predict_num=opt.predict_num)
 
 def train(**kwargs):
     opt._parse(kwargs)
