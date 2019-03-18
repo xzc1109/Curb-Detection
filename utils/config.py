@@ -46,6 +46,7 @@ class Config:
     debug_file = '/tmp/debugf'
 
     test_num = 227
+    predict_num = 3000
     # model
     load_path = False
     #load_path = 'checkpoints/fasterrcnn_03012109_1.0000000000000002'

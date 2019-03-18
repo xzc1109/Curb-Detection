@@ -60,9 +60,10 @@ def eval(dataloader, faster_rcnn, test_num=10000):
     return result,acc
 
 def predictor(dataloader, faster_rcnn, predict_num=10000):
-    pred_bboxes, pred_labels, pred_scores, pred_scenes = list(), list(), list(), list()
+    pred_bboxes, pred_labels, pred_scores, pred_scenes, img_ids = list(), list(), list(), list(), list()
     for ii, (imgs, sizes, __, __, __, __, img_id) in tqdm(enumerate(dataloader)):
         sizes = [sizes[0][0].item(), sizes[1][0].item()]
+        img_ids.append(str(img_id))
         pred_bboxes_, pred_labels_, pred_scores_, pred_scenes_ = faster_rcnn.predict(imgs, [sizes])
         pred_bboxes += pred_bboxes_
         #print(pred_bboxes)
@@ -74,8 +75,8 @@ def predictor(dataloader, faster_rcnn, predict_num=10000):
     json_file = open(json_path,'w')
     for i in range(len(pred_bboxes)):
         maxindex = pred_scores[i].argmax()
-        jlist.append({str(img_id):pred_bboxes[i][maxindex].tolist()})
-        jlist.append({str(img_id):pred_scenes[i]})
+        jlist.append({img_ids[i]:pred_bboxes[i][maxindex].tolist()})
+        jlist.append({img_ids[i]:pred_scenes[i]})
         print(pred_scenes[i])
     json.dump(jlist,json_file,indent=1)
     json_file.close()
