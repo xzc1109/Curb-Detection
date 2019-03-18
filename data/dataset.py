@@ -131,7 +131,7 @@ class TestDataset:
 class PredictDataset:
     def __init__(self, opt, split='predict', use_difficult=False):
         self.opt = opt
-        self.db = CurbROIDataset(opt.voc_data_dir, split=split, use_difficult=use_difficult)
+        self.db = CurbROIDataset(opt.predict_voc_data_dir, split=split, use_difficult=use_difficult)
 
     def __getitem__(self, idx):
         ori_img, bbox, label, difficult, scene, img_id = self.db.get_example(idx)

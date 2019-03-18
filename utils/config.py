@@ -8,6 +8,7 @@ from pprint import pprint
 class Config:
     # data
     voc_data_dir = '/home/xuzhongcong/mycode/CURB2019'
+    predict_voc_data_dir = '/home/xuzhongcong/mycode/Predict_CURB2019'
     min_size = 600  # image resize
     max_size = 1000 # image resize
     num_workers = 8
