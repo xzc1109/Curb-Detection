@@ -126,7 +126,7 @@ class CurbROIDataset:
 
         # if self.return_difficult:
         #     return img, bbox, label, difficult
-        return img, bbox, label, difficult, scene
+        return img, bbox, label, difficult, scene, id_
 
     __getitem__ = get_example
 
