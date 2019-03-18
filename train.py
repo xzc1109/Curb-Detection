@@ -59,7 +59,7 @@ def eval(dataloader, faster_rcnn, test_num=10000):
         use_07_metric=True)
     return result,acc
 
-def predictor(dataloader, faster_rcnn, test_num=10000):
+def predictor(dataloader, faster_rcnn, predict_num=10000):
     pred_bboxes, pred_labels, pred_scores, pred_scenes = list(), list(), list(), list()
     gt_bboxes, gt_labels, gt_difficults, gt_scenes = list(), list(), list() ,list()
     for ii, (imgs, sizes, gt_bboxes_, gt_labels_, gt_difficults_, gt_scenes_,img_id) in tqdm(enumerate(dataloader)):
@@ -96,7 +96,7 @@ def predict(**kwargs):
     if opt.load_path:
         trainer.load(opt.load_path)
         print('load best_model from %s complete'%opt.load_path)
-    predictor(predict_dataloader, faster_rcnn, test_num=opt.test_num)
+    predictor(predict_dataloader, faster_rcnn, predict_num=opt.predict_num)
 
 def train(**kwargs):
     opt._parse(kwargs)
