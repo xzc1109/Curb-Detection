@@ -113,6 +113,7 @@ class CurbROIDataset:
                     for tag in ('ymin', 'xmin', 'ymax', 'xmax')])
                 name = obj.find('name').text.lower().strip()
                 label.append(CURB_BBOX_LABEL_NAMES.index(name))
+                if scene_type is None:print(id_,'\n')
                 scene_type = obj.find('type').text.lower().strip()
                 scene.append(SCENE_NAMES.index(scene_type))
             bbox = np.stack(bbox).astype(np.float32)

@@ -7,7 +7,7 @@ from pprint import pprint
 
 class Config:
     # data
-    voc_data_dir = '/home/xuzhongcong/mycode/CURB2019'
+    voc_data_dir = '/home/xuzhongcong/mycode/_CURB2019'
     predict_voc_data_dir = '/home/xuzhongcong/mycode/Predict_CURB2019'
     min_size = 600  # image resize
     max_size = 1000 # image resize
@@ -38,7 +38,7 @@ class Config:
     epoch = 14
 
     #cuda_device_id
-    cuda_device_id = 1
+    cuda_device_id = 3
     
     use_adam = False # Use Adam optimizer
     use_chainer = False # try match everything as chainer
@@ -50,7 +50,7 @@ class Config:
     predict_num = 3000
     # model
     #load_path = False
-    load_path = 'checkpoints/fasterrcnn_03172216_0.91__0.97_'
+    load_path = 'checkpoints/fasterrcnn_03201409_0.89__0.96_'
 
     caffe_pretrain = False # use caffe pretrained model instead of torchvision
     caffe_pretrain_path = 'checkpoints/vgg16_caffe.pth'
