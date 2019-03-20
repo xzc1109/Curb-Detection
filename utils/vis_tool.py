@@ -82,7 +82,7 @@ def vis_bbox(img, bbox, label=None, score=None, scene=None, ax=None):
 
     # Returns newly instantiated matplotlib.axes.Axes object if ax is None
     ax = vis_image(img, ax=ax)
-    ax.text(50,1030,str(scene_names[scene[0]]),style='italic')
+    ax.text(50,550,str(scene_names[scene[0]]),style='italic')
     # If there is no bounding box to display, visualize the image and exit.
     if len(bbox) == 0:
         return ax
