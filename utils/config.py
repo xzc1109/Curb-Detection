@@ -50,7 +50,8 @@ class Config:
     predict_num = 3000
     # model
     #load_path = False
-    load_path = 'checkpoints/fasterrcnn_03201409_0.89__0.96_'
+    load_path = 'checkpoints/fasterrcnn_03201558_0.90__0.97_'
+
 
     caffe_pretrain = False # use caffe pretrained model instead of torchvision
     caffe_pretrain_path = 'checkpoints/vgg16_caffe.pth'
