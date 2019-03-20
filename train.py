@@ -2,6 +2,7 @@ from __future__ import  absolute_import
 # though cupy is not used but without this line, it raise errors...
 import cupy as cp
 import os
+import random
 import json
 import ipdb
 import matplotlib
@@ -179,6 +180,9 @@ def train(**kwargs):
             best_acc = accuracy
             best_path = trainer.save(best_map=best_map, accuracy = accuracy)
             #predictor(test_dataloader, faster_rcnn, test_num=opt.test_num)
+        
+        holdout(opt.voc_data_dir,0.3)
+
         if epoch == 9:
             trainer.load(best_path)
             trainer.faster_rcnn.scale_lr(opt.lr_decay)
@@ -187,6 +191,27 @@ def train(**kwargs):
         if epoch == 13: 
             break
 
+def holdout(dataset_dir,ratio=0.3):
+    test_percent = ratio
+    xmlfilepath = os.path.join(dataset_dir,'Annotations')
+    total_xml = os.listdir(xmlfilepath)
+    num = len(total_xml)
+    list = range(num)
+    num_test = int(num * test_percent)
+    test = random.sample(list, num_test)
+    ftest = open('ImageSets/Main/test.txt', 'w')
+    ftrain = open('ImageSets/Main/train.txt', 'w')
+
+    for i in list:
+        if total_xml[i].endswith('xml'):
+            name = total_xml[i][:-4] + '\n'
+            if i in test:
+                ftest.write(name)
+            else:
+                ftrain.write(name)
+
+    ftrain.close()
+    ftest.close()
 
 if __name__ == '__main__':
     import fire
