@@ -82,29 +82,27 @@ def vis_bbox(img, bbox, label=None, score=None, scene=None, ax=None):
 
     # Returns newly instantiated matplotlib.axes.Axes object if ax is None
     ax = vis_image(img, ax=ax)
-
+    ax.text(50,1030,str(scene_names[scene[0]]),style='italic')
     # If there is no bounding box to display, visualize the image and exit.
     if len(bbox) == 0:
         return ax
     for i, bb in enumerate(bbox):
         caption = list()
-        caption.append(scene_names[scene[0]])
         xy = (bb[1], bb[0])
         height = bb[2] - bb[0]
         width = bb[3] - bb[1]
         ax.add_patch(plot.Rectangle(
             xy, width, height, fill=False, edgecolor='red', linewidth=2))
 
-        
-        if label is not None and label_names is not None:
-            lb = label[i]
-            if not (-1 <= lb < len(label_names)):  # modfy here to add backgroud
-                raise ValueError('No corresponding name is given')
-            caption.append(label_names[lb])
-        if score is not None:
-            sc = score[i]
-            caption.append('{:.2f}'.format(sc))
-
+        if scene[0]!=2:
+            if label is not None and label_names is not None:
+                lb = label[i]
+                if not (-1 <= lb < len(label_names)):  # modfy here to add backgroud
+                    raise ValueError('No corresponding name is given')
+                caption.append(label_names[lb])
+            if score is not None:
+                sc = score[i]
+                caption.append('{:.2f}'.format(sc))
         if len(caption) > 0:
             ax.text(bb[1], bb[0],
                     ': '.join(caption),
