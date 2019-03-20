@@ -194,13 +194,15 @@ def train(**kwargs):
 def holdout(dataset_dir,ratio=0.3):
     test_percent = ratio
     xmlfilepath = os.path.join(dataset_dir,'Annotations')
+    testpath = os.path.join(xmlfilepath,'test.txt')
+    trainpath = os.path.join(xmlfilepath,'train.txt')
     total_xml = os.listdir(xmlfilepath)
     num = len(total_xml)
     list = range(num)
     num_test = int(num * test_percent)
     test = random.sample(list, num_test)
-    ftest = open('ImageSets/Main/test.txt', 'w')
-    ftrain = open('ImageSets/Main/train.txt', 'w')
+    ftest = open(testpath, 'w')
+    ftrain = open(trainpath, 'w')
 
     for i in list:
         if total_xml[i].endswith('xml'):
