@@ -46,7 +46,7 @@ class Config:
     # debug
     debug_file = '/tmp/debugf'
 
-    test_num = 1000
+    test_num = 1500
     predict_num = 7000
     # model
     #load_path = False
