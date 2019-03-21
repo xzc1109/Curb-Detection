@@ -7,7 +7,6 @@ import json
 import ipdb
 import matplotlib
 from tqdm import tqdm
-
 from utils.config import opt
 from data.dataset import Dataset, TestDataset, PredictDataset, inverse_normalize
 from model import FasterRCNNVGG16
@@ -16,10 +15,9 @@ from trainer import FasterRCNNTrainer
 from utils import array_tool as at
 from utils.vis_tool import visdom_bbox
 from utils.eval_tool import eval_detection_voc
-
-# fix for ulimit
-# https://github.com/pytorch/pytorch/issues/973#issuecomment-346405667
+from data.dataset import holdout
 import resource
+
 SCENE_NAMES = [
     'continuously_visible',
     'intersection',
@@ -191,29 +189,6 @@ def train(**kwargs):
         if epoch == 13: 
             break
 
-def holdout(dataset_dir,ratio=0.3):
-    test_percent = ratio
-    xmlfilepath = os.path.join(dataset_dir,'Annotations')
-    testpath = os.path.join(xmlfilepath,'test.txt')
-    trainpath = os.path.join(xmlfilepath,'train.txt')
-    total_xml = os.listdir(xmlfilepath)
-    num = len(total_xml)
-    list = range(num)
-    num_test = int(num * test_percent)
-    test = random.sample(list, num_test)
-    ftest = open(testpath, 'w')
-    ftrain = open(trainpath, 'w')
-
-    for i in list:
-        if total_xml[i].endswith('xml'):
-            name = total_xml[i][:-4] + '\n'
-            if i in test:
-                ftest.write(name)
-            else:
-                ftrain.write(name)
-
-    ftrain.close()
-    ftest.close()
 
 if __name__ == '__main__':
     import fire

@@ -73,6 +73,29 @@ def preprocess(img, min_size=600, max_size=1000):
         normalize = pytorch_normalze
     return normalize(img)
 
+def holdout(dataset_dir,ratio=0.3):
+    test_percent = ratio
+    xmlfilepath = os.path.join(dataset_dir,'Annotations')
+    testpath = os.path.join(xmlfilepath,'test.txt')
+    trainpath = os.path.join(xmlfilepath,'train.txt')
+    total_xml = os.listdir(xmlfilepath)
+    num = len(total_xml)
+    list = range(num)
+    num_test = int(num * test_percent)
+    test = random.sample(list, num_test)
+    ftest = open(testpath, 'w')
+    ftrain = open(trainpath, 'w')
+
+    for i in list:
+        if total_xml[i].endswith('xml'):
+            name = total_xml[i][:-4] + '\n'
+            if i in test:
+                ftest.write(name)
+            else:
+                ftrain.write(name)
+
+    ftrain.close()
+    ftest.close()
 
 class Transform(object):
 
