@@ -181,7 +181,7 @@ def train(**kwargs):
             best_path = trainer.save(best_map=best_map, accuracy = accuracy)
             #predictor(test_dataloader, faster_rcnn, test_num=opt.test_num)
         
-        holdout(opt.voc_data_dir,0.3)
+       #holdout(opt.voc_data_dir,0.3)
 
         if epoch == 9:
             trainer.load(best_path)
