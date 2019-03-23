@@ -22,7 +22,7 @@ class Config:
     # 0.0005 in origin paper but 0.0001 in tf-faster-rcnn
     weight_decay = 0.0005
     lr_decay = 0.1  # 1e-3 -> 1e-4
-    lr = 2e-3
+    lr = 1e-4
 
 
     # visualization
@@ -35,10 +35,10 @@ class Config:
     pretrained_model = 'vgg16'
 
     # training
-    epoch = 14
+    epoch = 12
 
     #cuda_device_id
-    cuda_device_id = 2
+    cuda_device_id = 3
     
     use_adam = False # Use Adam optimizer
     use_chainer = False # try match everything as chainer
@@ -46,11 +46,11 @@ class Config:
     # debug
     debug_file = '/tmp/debugf'
 
-    test_num = 3000
+    test_num = 2100
     predict_num = 7000
     # model
     #load_path = False
-    load_path = 'checkpoints/fasterrcnn_03202050_0.91__0.99_'
+    load_path = 'checkpoints/fasterrcnn_03212246_0.91__0.70_'
 
 
     caffe_pretrain = False # use caffe pretrained model instead of torchvision
