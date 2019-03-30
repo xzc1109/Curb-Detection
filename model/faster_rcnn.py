@@ -221,7 +221,7 @@ class FasterRCNN(nn.Module):
             sizes = list()
             for img in imgs:
                 size = img.shape[1:]
-                img = preprocess(at.tonumpy(img),224,224)
+                #img = preprocess(at.tonumpy(img),224,224)
                 prepared_imgs.append(img)
                 sizes.append(size)
         else:
@@ -232,6 +232,7 @@ class FasterRCNN(nn.Module):
         scenes = list()
         scene_scores = list()
         for img, size in zip(prepared_imgs, sizes):
+            img = preprocess(at.tonumpy(img),224,224)
             img = at.totensor(img[None]).float()
             scale = img.shape[3] / size[1]
             roi_cls_loc, roi_scores, rois, __, sc_scores= self(img, scale=scale)
