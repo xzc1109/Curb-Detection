@@ -60,11 +60,11 @@ def preprocess(img, min_size=600, max_size=1000):
 
     """
     C, H, W = img.shape
-    scale1 = min_size / min(H, W)
-    scale2 = max_size / max(H, W)
-    scale = min(scale1, scale2)
+    scale1 = min_size / H
+    scale2 = max_size / W
+    #scale = min(scale1, scale2)
     img = img / 255.
-    img = sktsf.resize(img, (C, H * scale, W * scale), mode='reflect',anti_aliasing=False)
+    img = sktsf.resize(img, (C, H * scale1, W * scale2), mode='reflect',anti_aliasing=False)
     # both the longer and shorter should be less than
     # max_size and min_size
     if opt.caffe_pretrain:
