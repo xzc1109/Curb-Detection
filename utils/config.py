@@ -38,7 +38,7 @@ class Config:
     epoch = 12
 
     #cuda_device_id
-    cuda_device_id = 3
+    cuda_device_id = 2
     
     use_adam = False # Use Adam optimizer
     use_chainer = False # try match everything as chainer
