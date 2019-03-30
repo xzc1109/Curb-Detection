@@ -106,6 +106,7 @@ class SceneClassifier(nn.Module):
     '''
     def __init__(self, scene_classes, classifier):
         super(SceneClassifier,self).__init__()
+        '''
         in_channels = 512
         out_channels = 512
         self.conv = nn.Sequential(
@@ -114,10 +115,13 @@ class SceneClassifier(nn.Module):
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2)
         )
+        '''
+        self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
         self.classifier = classifier
         self.score = nn.Linear(4096, scene_classes)
     def forward(self, x):
         #x = self.conv(x)
+        x = self.maxpool(x)
         x = x.view(x.size(0), -1)
         x = self.classifier(x)
         x = self.score(x)
