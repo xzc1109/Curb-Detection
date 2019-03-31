@@ -118,7 +118,7 @@ class SceneClassifier(nn.Module):
         '''
         self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
         self.classifier = classifier
-        self.score = nn.Linear(1000, scene_classes)
+        self.score = nn.Linear(4096, scene_classes)
     def forward(self, x):
         #x = self.conv(x)
         x = self.maxpool(x)
