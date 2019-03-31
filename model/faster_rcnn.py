@@ -235,7 +235,6 @@ class FasterRCNN(nn.Module):
             #img = preprocess(at.tonumpy(img),224,224)
             img = at.totensor(img[None]).float()
             scale = img.shape[3] / size[1]
-            print(scale)
             roi_cls_loc, roi_scores, rois, __, sc_scores= self(img, scale=scale)
             # We are assuming that batch size is 1.
             roi_score = roi_scores.data
