@@ -22,7 +22,7 @@ class Config:
     # 0.0005 in origin paper but 0.0001 in tf-faster-rcnn
     weight_decay = 0.0005
     lr_decay = 0.1  # 1e-3 -> 1e-4
-    lr = 1e-3
+    lr = 1e-4
 
 
     # visualization
@@ -50,7 +50,7 @@ class Config:
     predict_num = 7000
     # model
     #load_path = False
-    load_path = 'checkpoints/fasterrcnn_03311234_0.03__0.97_'
+    load_path = 'checkpoints/fasterrcnn_03311622_0.90__0.95_'
 
 
     caffe_pretrain = False # use caffe pretrained model instead of torchvision
