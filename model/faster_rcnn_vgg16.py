@@ -23,14 +23,14 @@ def decom_vgg16():
     curb_classifier = model.classifier#curb_classifier does not share weights with faster-rcnn classifier
     classifier = list(classifier)
     curb_classifier = list(curb_classifier)
-    #del curb_classifier[0]
+    del curb_classifier[0]
     del classifier[6]
     if not opt.use_drop:
         del classifier[5]
         del curb_classifier[5]
         del classifier[2]
         del curb_classifier[2]
-    #curb_classifier = [nn.Linear(512 * 8 * 15, 4096)] + curb_classifier
+    curb_classifier = [nn.Linear(512 * 9 * 5, 4096)] + curb_classifier
     curb_classifier = nn.Sequential(*curb_classifier)
     classifier = nn.Sequential(*classifier)
 
