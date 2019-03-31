@@ -39,7 +39,7 @@ def caffe_normalize(img):
     return img
 
 
-def preprocess(img, min_size=600, max_size=1000):
+def preprocess(img, min_size=224, max_size=224):
     """Preprocess an image for feature extraction.
 
     The length of the shorter edge is scaled to :obj:`self.min_size`.
@@ -99,7 +99,7 @@ def holdout(dataset_dir,ratio=0.3):
 
 class Transform(object):
 
-    def __init__(self, min_size=600, max_size=1000):
+    def __init__(self, min_size=224, max_size=224):
         self.min_size = min_size
         self.max_size = max_size
 
@@ -145,7 +145,7 @@ class TestDataset:
 
     def __getitem__(self, idx):
         ori_img, bbox, label, difficult, scene,__ = self.db.get_example(idx)
-        img = preprocess(ori_img)
+        img = preprocess(ori_img,opt.min_size, opt.max_size)
         return img, ori_img.shape[1:], bbox, label, difficult ,scene
 
     def __len__(self):
@@ -158,7 +158,7 @@ class PredictDataset:
 
     def __getitem__(self, idx):
         ori_img, img_id = self.db.get_example(idx)
-        img = preprocess(ori_img)
+        img = preprocess(ori_img,opt.min_size, opt.max_size)
         return img, ori_img.shape[1:],img_id
 
     def __len__(self):
