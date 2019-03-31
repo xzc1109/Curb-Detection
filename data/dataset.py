@@ -60,8 +60,8 @@ def preprocess(img, min_size=opt.min_size, max_size=opt.max_size):
 
     """
     C, H, W = img.shape
-    scale1 = min_size / H
-    scale2 = max_size / W
+    scale1 = min_size / min(H, W)
+    scale2 = max_size / max(H, W)
     scale = min(scale1, scale2)
     img = img / 255.
     img = sktsf.resize(img, (C, H * scale, W * scale), mode='reflect',anti_aliasing=False)
