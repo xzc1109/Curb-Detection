@@ -39,7 +39,7 @@ def caffe_normalize(img):
     return img
 
 
-def preprocess(img, min_size=224, max_size=224):
+def preprocess(img, min_size=opt.min_size, max_size=opt.max_size):
     """Preprocess an image for feature extraction.
 
     The length of the shorter edge is scaled to :obj:`self.min_size`.
@@ -62,9 +62,9 @@ def preprocess(img, min_size=224, max_size=224):
     C, H, W = img.shape
     scale1 = min_size / H
     scale2 = max_size / W
-    #scale = min(scale1, scale2)
+    scale = min(scale1, scale2)
     img = img / 255.
-    img = sktsf.resize(img, (C, H * scale1, W * scale2), mode='reflect',anti_aliasing=False)
+    img = sktsf.resize(img, (C, H * scale, W * scale), mode='reflect',anti_aliasing=False)
     # both the longer and shorter should be less than
     # max_size and min_size
     if opt.caffe_pretrain:
@@ -99,7 +99,7 @@ def holdout(dataset_dir,ratio=0.3):
 
 class Transform(object):
 
-    def __init__(self, min_size=224, max_size=224):
+    def __init__(self, min_size=opt.min_size, max_size=opt.max_size):
         self.min_size = min_size
         self.max_size = max_size
 
@@ -142,7 +142,7 @@ class TestDataset:
     def __init__(self, opt, split='test', use_difficult=True):
         self.opt = opt
         self.db = CurbROIDataset(opt.voc_data_dir, split=split, use_difficult=use_difficult)
-
+        
     def __getitem__(self, idx):
         ori_img, bbox, label, difficult, scene,__ = self.db.get_example(idx)
         img = preprocess(ori_img,opt.min_size, opt.max_size)

@@ -9,8 +9,8 @@ class Config:
     # data
     voc_data_dir = '/home/xuzhongcong/mycode/_CURB2019'
     predict_voc_data_dir = '/home/xuzhongcong/mycode/Predict_CURB2019'
-    min_size = 224  # image resize
-    max_size = 224 # image resize
+    min_size = 168  # image resize
+    max_size = 300 # image resize
     num_workers = 8
     test_num_workers = 8
 
