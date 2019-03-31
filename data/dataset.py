@@ -142,7 +142,7 @@ class TestDataset:
     def __init__(self, opt, split='test', use_difficult=True):
         self.opt = opt
         self.db = CurbROIDataset(opt.voc_data_dir, split=split, use_difficult=use_difficult)
-
+        
     def __getitem__(self, idx):
         ori_img, bbox, label, difficult, scene,__ = self.db.get_example(idx)
         img = preprocess(ori_img,opt.min_size, opt.max_size)
